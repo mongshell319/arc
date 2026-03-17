@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>아크 제로 — 세대선</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="game">
+
+  <!-- ── 인트로 화면 ── -->
+  <div id="intro-screen" class="screen">
+    <div class="stars"></div>
+    <div class="intro-content">
+      <div class="arc-badge">ARC-0</div>
+      <h1>아크 제로</h1>
+      <p class="intro-sub">세대선</p>
+      <div class="intro-lines">
+        <p>출발 후 47년째.</p>
+        <p>반란이 끝났다. 아무것도 바뀌지 않았다.</p>
+        <p>당신의 이름은 <strong>새하</strong>.<br>엔지니어였다. 어제까지는.</p>
+        <p>오늘부터는 운영위원장이다.</p>
+      </div>
+      <button id="btn-start" class="btn-primary">항해를 이어가다</button>
+      <p class="intro-hint">케플러 그린까지 — 아직 50년이 남았습니다</p>
+    </div>
+  </div>
+
+  <!-- ── 메인 게임 화면 ── -->
+  <div id="game-screen" class="screen hidden">
+
+    <!-- HUD 상단 -->
+    <header id="hud">
+      <div class="hud-left">
+        <span class="hud-ship">ARC-0</span>
+        <span class="hud-time">출발 후 <span id="hud-year">47</span>년 <span id="hud-month">1</span>월</span>
+      </div>
+      <div class="hud-resources">
+        <div class="res-block" id="rb-pop">
+          <span class="res-icon">👥</span>
+          <div class="res-vals">
+            <span class="res-main" id="val-pop">2,400</span>
+            <span class="res-lbl">인구</span>
+          </div>
+        </div>
+        <div class="res-block" id="rb-food">
+          <span class="res-icon">🌾</span>
+          <div class="res-vals">
+            <span class="res-main"><span id="val-food">170</span></span>
+            <span class="res-lbl">식량 <span id="delta-food" class="delta"></span></span>
+          </div>
+        </div>
+        <div class="res-block" id="rb-energy">
+          <span class="res-icon">⚡</span>
+          <div class="res-vals">
+            <span class="res-main"><span id="val-energy">71</span>%</span>
+            <span class="res-lbl">에너지 <span id="delta-energy" class="delta"></span></span>
+          </div>
+        </div>
+        <div class="res-block" id="rb-morale">
+          <span class="res-icon">✦</span>
+          <div class="res-vals">
+            <span class="res-main"><span id="val-morale">45</span>%</span>
+            <span class="res-lbl">항도 지지율</span>
+          </div>
+        </div>
+        <div class="res-block" id="rb-suc">
+          <span class="res-icon">🔬</span>
+          <div class="res-vals">
+            <span class="res-main" id="val-suc">38명</span>
+            <span class="res-lbl">승계 대기</span>
+          </div>
+        </div>
+      </div>
+      <div class="hud-right">
+        <button id="btn-turn" class="btn-turn">다음 달 →</button>
+      </div>
+    </header>
+
+    <!-- 메인 컨텐츠 -->
+    <div id="main-area">
+
+      <!-- 왼쪽: 구역 패널 -->
+      <aside id="zone-panel">
+        <div class="panel-head">
+          <h2>구역 현황</h2>
+          <div class="zone-counts">
+            <span class="zc-player">자치 <b id="cnt-player">5</b></span>
+            <span class="zc-neutral">중립 <b id="cnt-neutral">12</b></span>
+            <span class="zc-enemy">기득권 <b id="cnt-enemy">30</b></span>
+          </div>
+        </div>
+        <div id="zones-list"></div>
+      </aside>
+
+      <!-- 중앙: 상세 + 로그 -->
+      <main id="center-panel">
+        <div id="zone-detail">
+          <div class="detail-placeholder">
+            <div class="ph-icon">⚙</div>
+            <p>구역을 선택하면<br>상세 정보가 표시됩니다</p>
+          </div>
+        </div>
+        <div id="log-box">
+          <h3>운영 기록</h3>
+          <div id="log-entries"></div>
+        </div>
+      </main>
+
+      <!-- 오른쪽: 현황 + 행동 + 정책 -->
+      <aside id="action-panel">
+        <h3>현황 요약</h3>
+        <div id="status-box"></div>
+        <h3>행동</h3>
+        <div id="action-box"></div>
+        <h3>정책</h3>
+        <div id="policy-section"></div>
+      </aside>
+
+    </div>
+  </div>
+
+  <!-- ── 이벤트 모달 ── -->
+  <div id="event-modal" class="modal hidden">
+    <div class="modal-bg"></div>
+    <div class="modal-card">
+      <div id="ev-type" class="ev-type-label"></div>
+      <h2 id="ev-title"></h2>
+      <div id="ev-body"></div>
+      <div id="ev-choices"></div>
+    </div>
+  </div>
+
+  <!-- ── 게임오버 화면 ── -->
+  <div id="end-screen" class="screen hidden">
+    <div class="end-content">
+      <div id="end-type"></div>
+      <h1 id="end-title"></h1>
+      <p id="end-msg"></p>
+      <div id="end-stats"></div>
+      <button id="btn-restart" class="btn-primary">다시 시작</button>
+    </div>
+  </div>
+
+</div>
+<script src="game.js"></script>
+</body>
+</html>
