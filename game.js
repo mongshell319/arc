@@ -177,7 +177,17 @@ function newGame() {
     },
     zones: buildZones(),
     sucQueue: C.START_SUC_QUEUE,
-    flags: { storyStage: 0, eliteRel: C.ELITE_REL_START },
+    flags: {
+      storyStage: 0, eliteRel: C.ELITE_REL_START,
+      doyulRel: 50,      // 도율 관계
+      seonuRel: 30,      // 선우 관계
+      eumRel: 40,        // 이음 관계
+      haonRel: 35,       // 하온 관계
+      byeolRel: 20,      // 별 관계
+      kangmuRel: 40,     // 강무 관계
+      elderRel: 60,      // 오래된 자 관계
+      byeolSecretClues: 0, // 별의 비밀 단서
+    },
     policies: { foodRation: false, energySave: false, openCulture: false, sucFocus: false, expansion: false, securityFocus: false, techFocus: false },
     systems: { sucBasic: true, hanto: false, zoneMerge: false, sucAdvanced: false, eliteRelations: false, sucLabUnlocked: false, vertFarm: false, fusion: false, hantoTemple: false, communityHub: false },
     log: [],
@@ -993,19 +1003,19 @@ const STORY_EVENTS = [
     trigger: s => s.turn >= 36 && s.flags.storyStage >= 2 && !s.flags.elderLastDone,
     type: 'story',
     title: '오래된 자의 마지막 방문',
-    body: `오래된 자가 새하를 불렀다.
+    body: `오래된 자가 새하를 데려갔다. 기록에도 없는 통로 끝.
 
-44구역이 아니었다. 아크 제로 깊숙이, 한 번도 가본 적 없는 통로 끝.
+그가 처음으로 새하를 제대로 바라봤다.
 
-그가 벽을 짚었다. 숨겨진 문이 열렸다.
+"당신의 어머니 이서에 대해 말해야 할 것이 있어요."
 
-안에는 기록이 있었다. 오래된 자의 기록이. 그리고 — 새하의 어머니에 대한 기록이.
+그가 말했다. 이서는 아크 제로 설계팀 일원이었다. 오래된 자는 출발 전 이서를 설득했다. 승계를 거부하도록. 6구역의 비밀을 아는 사람이 승계를 거듭해 판단이 흐려지면 안 된다는 이유로.
 
-새하의 어머니는 아크 제로 설계팀의 일원이었다. 유일하게 승계를 거부한 사람. 그녀는 자신의 기억을 새하의 유전자 안에 남겼다.
+그러나 진짜 이유는 말하지 않았다.
 
-새하가 설계도를 본능적으로 읽어내는 것은 재능이 아니었다. 기억이었다.
+이서는 자신이 이용당했다는 것을 끝까지 몰랐다.
 
-"승계하지 않은 자가 가장 순수한 기억을 가진 자다. 네 어머니가 남긴 것이 네 안에 있다."`,
+새하가 오래된 자를 바라봤다.`,
     choices: [
       {
         text: '기록을 모두 읽는다',
@@ -1014,9 +1024,9 @@ const STORY_EVENTS = [
           s.flags.motherTruth   = true;
           s.flags.storyStage    = 3;
           s.res.morale += 10;
-          addLog('어머니에 대한 진실을 알게 됐다. 무언가가 달라졌다.');
+          addLog('어머니가 이용당했다는 진실을 알게 됐다. 오래된 자를 다시 보게 됐다.');
         },
-        result: '새하는 오래 그 자리에 서 있었다. 설계도를 다시 떠올렸다. 같은 선이지만, 다르게 보였다. 어머니의 눈으로.',
+        result: '새하는 오래 그 자리에 서 있었다. 오래된 자도 아무 말 하지 않았다. 침묵이 답이었다.',
       },
     ],
   },
@@ -1025,15 +1035,21 @@ const STORY_EVENTS = [
     trigger: s => s.flags.motherTruth && !s.flags.zone6Done,
     type: 'story',
     title: '6구역 — 봉인 구역',
-    body: `오래된 자가 새하를 데려간 그곳.
+    body: `새하의 어머니가 설계한 공간.
 
-설계도에도 없고 공식 기록에도 없는 구역.
+벽에 기록이 있었다. 오래된 자의 필체로.
 
-새하의 어머니의 기록이 있었다. 설계팀 보고서. 수기로 적힌 메모. 그리고 새하에게 보내는 편지.
+"나는 네 어머니에게 두 가지를 했다.
 
-"네가 이것을 읽는다면, 네 안의 것들이 이미 작동하고 있을 것이다. 두려워하지 마라. 그것은 내가 선물한 것이다."
+하나는, 그녀를 설득해 승계를 거부하게 만든 것. 나는 그것이 필요하다고 판단했다. 그러나 그녀에게 진짜 이유를 말하지 않았다. 그것은 거짓말이었다.
 
-새하는 한참 동안 그 편지 앞에 서 있었다.`,
+다른 하나는, 그녀가 죽은 후 47년 동안 너를 지켜봤지만 아무것도 하지 않은 것. 그것은 비겁함이었다.
+
+솔직히 말하면 나는 지쳐있었다. 오래 살았고, 많이 잃었고, 이제 내가 누구인지 모르겠다. 그리고 6구역의 비밀을 감당할 사람이 필요했다. 너는 그 조건에 맞는 유일한 사람이었다.
+
+이것이 선택의 전부다. 숭고하지 않다.
+
+그러나 한 가지는 진심이다. 네 어머니는 훌륭한 사람이었다. 나보다 훨씬. 그녀의 딸이 이 배를 이끄는 것을 보고 싶었다."`,
     choices: [
       {
         text: '기록을 모두 읽는다',
@@ -1042,9 +1058,9 @@ const STORY_EVENTS = [
           s.res.morale += 10;
           s.res.hanto  += 5;
           s.flags.storyStage = Math.max(s.flags.storyStage, 4);
-          addLog('6구역 봉인 해제. 어머니의 기록을 읽다. 무언가가 달라졌다.');
+          addLog('6구역 봉인 해제. 오래된 자의 고백문을 읽다.');
         },
-        result: '새하는 오래 그 자리에 서 있었다. 설계도를 다시 떠올렸다. 같은 선이지만, 다르게 보였다. 어머니의 눈으로.',
+        result: '새하는 오래 그 자리에 서 있었다. 이것이 선택의 전부라고 했다. 숭고하지 않다고 했다. 그것이 오히려 무거웠다.',
       },
     ],
   },
