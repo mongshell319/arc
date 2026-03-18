@@ -27,25 +27,125 @@ const C = {
 };
 
 // ─── 건물 정의 ──────────────────────────────────────
+// tier: 1=기본 / 2=발전형 / 3=고급형(잠금 해제 필요)
 const BUILDINGS = {
-  // ── 기본 생산 ──
-  farm:           { name: '농장',        icon: '🌾', foodPerTurn: 8,   energyDrain: 1, buildCost: { food: 20, energy: 30 }, desc: '식량 +8/월  · [조합] 작업장과 함께면 +3 추가', prodDesc: '+8식량' },
-  hydroponics:    { name: '수경 농장',   icon: '💧', foodPerTurn: 14,  energyDrain: 4, buildCost: { food: 30, energy: 50 }, desc: '식량 +14/월, 에너지 -4/월 — 고효율이지만 전력을 많이 먹는다', prodDesc: '+14식량/-4전력' },
-  powerplant:     { name: '발전소',      icon: '⚡', energyPerTurn:12,                  buildCost: { food: 10, energy: 0  }, desc: '에너지 +12/월  · [조합] 태양전지판과 함께면 +2 추가', prodDesc: '+12에너지' },
-  solar_array:    { name: '태양전지판', icon: '☀️', energyPerTurn: 6,                  buildCost: { food: 5,  energy: 0  }, desc: '에너지 +6/월, 비용 저렴. 출력 낮음  · [조합] 발전소와 함께면 +2', prodDesc: '+6에너지' },
-  // ── 주민 지원 ──
-  housing:        { name: '주거 구역',   icon: '🏠', moraleBonus: 2,                   buildCost: { food: 15, energy: 20 }, desc: '사기 +2 (설치 즉시)', prodDesc: '+2사기' },
-  clinic:         { name: '의무실',      icon: '🏥', sucBonus: 8, popGrowthBonus: 1,   buildCost: { food: 25, energy: 20 }, desc: '승계+8%, 인구 자연증가+1/4턴 — 소모품 공급이 필요해 비쌈', prodDesc: '승계↑·인구↑' },
-  // ── 문화 / 정신 ──
-  cultural_center:{ name: '문화 구역',   icon: '🎭', moralePerTurn: 2, hantoPerTurn: 1, buildCost: { food: 10, energy: 15 }, desc: '사기+2/월, 항도+1/월  · [조합] 명상원과 함께면 항도+2 추가  · [충돌] 방송탑과 함께면 둘 다 -1', prodDesc: '+2사기/+1항도' },
-  meditation:     { name: '명상원',      icon: '🪷', hantoPerTurn: 3, moralePerTurn:-1, buildCost: { food: 12, energy: 10 }, desc: '항도+3/월, 사기-1/월 — 내면에 집중할수록 현실이 불편해진다', prodDesc: '+3항도/-1사기' },
-  propaganda:     { name: '방송탑',      icon: '📢', moralePerTurn: 3, hantoPerTurn:-2, buildCost: { food: 8,  energy: 20 }, desc: '사기+3/월, 항도-2/월 — 체제 선전은 효과적이지만 항도를 갉아먹는다', prodDesc: '+3사기/-2항도' },
-  // ── 기술 / 방어 ──
-  workshop:       { name: '기술 작업장', icon: '🔧', repairBonus: 5,   energyDrain: 2, buildCost: { food: 10, energy: 25 }, desc: '수리 효율+5%  · [조합] 농장·수경 농장과 함께면 식량+3', prodDesc: '수리↑' },
-  barracks:       { name: '방위대',      icon: '🛡️', defenseBonus: 30, energyDrain: 2, buildCost: { food: 15, energy: 30 }, desc: '구역 탈환 저항+30%, 에너지-2/월 — 주민에게 부담이 됨', prodDesc: '방어+30%' },
-  trading_post:   { name: '교역소',      icon: '🔄', tradeEnabled: true, energyDrain:1, expandBonus: 0.10, buildCost: { food: 15, energy: 25 }, desc: '중립 구역 병합+10%, 에너지-1/월 — 자원 교역 가능', prodDesc: '병합↑·교역' },
-  succession_lab: { name: '승계 실험실', icon: '🔬', sucBonus: 15,     energyDrain: 3, buildCost: { food: 20, energy: 40 }, desc: '승계 성공률+15% — 정밀 장비라 유지비가 비쌈', prodDesc: '승계↑', unlock: 'sucLabUnlocked' },
+  // ══ 식량 생산 T1→T2→T3 ═══════════════════════════
+  farm:           { name:'농장',        icon:'🌾', tier:1, group:'food',
+                    foodPerTurn:8, energyDrain:1,
+                    buildCost:{food:20,energy:30},
+                    desc:'식량+8/월 · 저렴하고 안정적 · [조합] 작업장과 함께면 +3',
+                    prodDesc:'+8식량' },
+  hydroponics:    { name:'수경 농장',   icon:'💧', tier:2, group:'food',
+                    foodPerTurn:15, energyDrain:4,
+                    buildCost:{food:35,energy:55},
+                    desc:'식량+15/월, 에너지-4/월 · 농장 대비 1.9배 효율, 전력 4배 소모',
+                    prodDesc:'+15식량/-4전력' },
+  vertical_farm:  { name:'수직 농장',   icon:'🏗️', tier:3, group:'food',
+                    foodPerTurn:26, energyDrain:9,
+                    buildCost:{food:60,energy:100},
+                    desc:'식량+26/월, 에너지-9/월 · 압도적 효율. 전력 끊기면 전체 손실',
+                    prodDesc:'+26식량/-9전력', unlock:'vertFarm' },
+
+  // ══ 에너지 T1→T2→T3 ════════════════════════════
+  solar_array:    { name:'태양전지판', icon:'☀️', tier:1, group:'energy',
+                    energyPerTurn:6,
+                    buildCost:{food:5,energy:0},
+                    desc:'에너지+6/월 · 건설비 거의 없음. 출력 낮음 · [조합] 발전소와 함께면 +2',
+                    prodDesc:'+6에너지' },
+  powerplant:     { name:'발전소',      icon:'⚡', tier:2, group:'energy',
+                    energyPerTurn:13,
+                    buildCost:{food:10,energy:0},
+                    desc:'에너지+13/월 · 표준 발전. 유지비 없음 · [조합] 태양전지판과 함께면 +2',
+                    prodDesc:'+13에너지' },
+  fusion_reactor: { name:'핵융합로',    icon:'☢️', tier:3, group:'energy',
+                    energyPerTurn:26, foodDrain:2,
+                    buildCost:{food:25,energy:110},
+                    desc:'에너지+26/월, 식량-2/월(연료 소모) · 발전소의 2배. 연료 없으면 셧다운',
+                    prodDesc:'+26에너지/-2식량', unlock:'fusion' },
+
+  // ══ 주거·복지 T1→T2→T3 ════════════════════════
+  housing:        { name:'주거 구역',   icon:'🏠', tier:1, group:'housing',
+                    moraleBonus:2,
+                    buildCost:{food:15,energy:20},
+                    desc:'사기+2 (설치 즉시) · 빠르고 저렴. 지속 효과 없음',
+                    prodDesc:'+2사기(즉시)' },
+  welfare_center: { name:'복지 센터',   icon:'🏛️', tier:2, group:'housing',
+                    moralePerTurn:2, hantoPerTurn:1,
+                    buildCost:{food:28,energy:32},
+                    desc:'사기+2/월, 항도+1/월 · 지속 효과. 주거 구역보다 운영비 높음',
+                    prodDesc:'+2사기/월 +1항도' },
+  community_hub:  { name:'공동체 허브', icon:'🌟', tier:3, group:'housing',
+                    moralePerTurn:3, hantoPerTurn:2, popGrowthBonus:1,
+                    buildCost:{food:45,energy:50},
+                    desc:'사기+3/월, 항도+2/월, 인구+1/4턴 · 공동체의 구심점. 건설·운영비 모두 비쌈',
+                    prodDesc:'+3사기 +2항도/월', unlock:'communityHub' },
+
+  // ══ 문화·정신 T1→T2→T3 (+방송탑 분기) ════════
+  meditation:     { name:'명상원',      icon:'🪷', tier:1, group:'culture',
+                    hantoPerTurn:3, moralePerTurn:-1,
+                    buildCost:{food:12,energy:10},
+                    desc:'항도+3/월, 사기-1/월 · 내면 집중. 생산성 저하 · [조합] 문화 구역과 함께면 항도+2',
+                    prodDesc:'+3항도/-1사기' },
+  cultural_center:{ name:'문화 구역',   icon:'🎭', tier:2, group:'culture',
+                    moralePerTurn:2, hantoPerTurn:2,
+                    buildCost:{food:15,energy:18},
+                    desc:'사기+2/월, 항도+2/월 · 균형형 · [조합] 명상원+2항도 / 방송탑 충돌',
+                    prodDesc:'+2사기/+2항도' },
+  hanto_temple:   { name:'항도 성전',   icon:'⛩️', tier:3, group:'culture',
+                    moralePerTurn:3, hantoPerTurn:5, energyDrain:3,
+                    buildCost:{food:35,energy:55},
+                    desc:'항도+5/월, 사기+3/월, 에너지-3/월 · 정신적 구심점. 믿지 않는 사람엔 부담',
+                    prodDesc:'+5항도/+3사기', unlock:'hantoTemple' },
+  propaganda:     { name:'방송탑',      icon:'📢', tier:2, group:'culture',
+                    moralePerTurn:3, hantoPerTurn:-2,
+                    buildCost:{food:8,energy:20},
+                    desc:'사기+3/월, 항도-2/월 · 선전 효과 강력. 항도를 갉아먹음 · [충돌] 문화 구역',
+                    prodDesc:'+3사기/-2항도' },
+
+  // ══ 기술·승계 T1→T2→T3 ════════════════════════
+  workshop:       { name:'기술 작업장', icon:'🔧', tier:1, group:'tech',
+                    repairBonus:5, energyDrain:2,
+                    buildCost:{food:10,energy:25},
+                    desc:'수리 효율+5%, 에너지-2/월 · [조합] 농장류와 함께면 식량+3',
+                    prodDesc:'수리+5%' },
+  research_lab:   { name:'연구소',      icon:'🔬', tier:2, group:'tech',
+                    repairBonus:12, sucBonus:6, energyDrain:3,
+                    buildCost:{food:22,energy:42},
+                    desc:'수리+12%, 승계+6%, 에너지-3/월 · 작업장보다 범용적이고 효율적',
+                    prodDesc:'수리+12%/승계+6%' },
+  succession_lab: { name:'승계 실험실', icon:'🧬', tier:3, group:'tech',
+                    sucBonus:20, energyDrain:4,
+                    buildCost:{food:28,energy:60},
+                    desc:'승계+20%, 에너지-4/월 · 승계 전용 최고급 시설. 다른 용도로 못 씀',
+                    prodDesc:'승계+20%', unlock:'sucLabUnlocked' },
+
+  // ══ 독립 특수 시설 ════════════════════════════
+  clinic:         { name:'의무실',      icon:'🏥', tier:2, group:'misc',
+                    sucBonus:8, popGrowthBonus:1,
+                    buildCost:{food:25,energy:20},
+                    desc:'승계+8%, 인구+1/4턴 · 의료와 승계를 병행. 소모품 공급 필요',
+                    prodDesc:'승계+8%/인구↑' },
+  barracks:       { name:'방위대',      icon:'🛡️', tier:1, group:'misc',
+                    defenseBonus:30, energyDrain:2,
+                    buildCost:{food:15,energy:30},
+                    desc:'탈환 저항+30%, 에너지-2/월 · 감시가 일상이 되면 사람이 달라진다',
+                    prodDesc:'방어+30%' },
+  trading_post:   { name:'교역소',      icon:'🔄', tier:1, group:'misc',
+                    tradeEnabled:true, energyDrain:1, expandBonus:0.10,
+                    buildCost:{food:15,energy:25},
+                    desc:'중립 구역 병합+10%, 에너지-1/월 · 자원 교역 가능',
+                    prodDesc:'병합↑·교역' },
 };
+
+// ─── 건물 카테고리 (빌드 메뉴 표시 순서) ────────────
+const BUILDING_GROUPS = [
+  { label:'🌾 식량 생산', ids:['farm','hydroponics','vertical_farm'] },
+  { label:'⚡ 에너지',    ids:['solar_array','powerplant','fusion_reactor'] },
+  { label:'🏠 주거·복지', ids:['housing','welfare_center','community_hub'] },
+  { label:'🎭 문화·정신', ids:['meditation','cultural_center','hanto_temple','propaganda'] },
+  { label:'🔧 기술·승계', ids:['workshop','research_lab','succession_lab'] },
+  { label:'⚙️ 특수 시설', ids:['clinic','barracks','trading_post'] },
+];
 
 // ─── 정책 정의 ──────────────────────────────────────
 const POLICIES = {
@@ -79,7 +179,7 @@ function newGame() {
     sucQueue: C.START_SUC_QUEUE,
     flags: { storyStage: 0, eliteRel: C.ELITE_REL_START },
     policies: { foodRation: false, energySave: false, openCulture: false, sucFocus: false, expansion: false, securityFocus: false, techFocus: false },
-    systems: { sucBasic: true, hanto: false, zoneMerge: false, sucAdvanced: false, eliteRelations: false },
+    systems: { sucBasic: true, hanto: false, zoneMerge: false, sucAdvanced: false, eliteRelations: false, sucLabUnlocked: false, vertFarm: false, fusion: false, hantoTemple: false, communityHub: false },
     log: [],
     pending: [],
     curEvent: null,
@@ -168,6 +268,7 @@ function calcDelta() {
       if (b.foodPerTurn)   foodProd    += b.foodPerTurn   * eff;
       if (b.energyPerTurn) energyProd  += b.energyPerTurn * eff;
       if (b.energyDrain)   energyDrain += b.energyDrain;
+      if (b.foodDrain)     foodProd    -= b.foodDrain;          // 핵융합로 연료 소모
       if (b.moralePerTurn) moraleDelta += b.moralePerTurn;
       if (b.hantoPerTurn)  hantoDelta  += b.hantoPerTurn;
     });
@@ -241,12 +342,13 @@ function nextTurn() {
   // 승계 대기자 자연 증가
   if (S.turn % 4 === 0) S.sucQueue += Math.floor(S.res.pop / 600);
 
-  // 의무실 인구 자연증가
+  // 인구 자연증가 (의무실·공동체 허브)
   if (S.turn % 4 === 0) {
-    const clinicCount = S.zones.filter(z => z.owner === 'player').flatMap(z => z.fac).filter(f => f === 'clinic').length;
-    if (clinicCount > 0) {
-      S.res.pop += clinicCount;
-      addLog(`의무실 ${clinicCount}개 운영 중: 인구 자연증가 +${clinicCount}명.`);
+    const allFac2 = S.zones.filter(z => z.owner === 'player').flatMap(z => z.fac);
+    const popGain = allFac2.filter(f => f === 'clinic').length + allFac2.filter(f => f === 'community_hub').length;
+    if (popGain > 0) {
+      S.res.pop += popGain;
+      addLog(`인구 자연증가 +${popGain}명 (의무실·공동체 허브).`);
     }
   }
 
@@ -280,6 +382,13 @@ function nextTurn() {
   if (owned >= 8  && S.flags.storyStage < 1) S.flags.storyStage = 1;
   if (owned >= 14 && S.flags.storyStage < 2) S.flags.storyStage = 2;
   if (owned >= 20 && S.flags.storyStage < 3) S.flags.storyStage = 3;
+
+  // 고급 건물 잠금 해제
+  if (S.flags.storyStage >= 1 && !S.systems.vertFarm)    { S.systems.vertFarm    = true; notify('🏗️ 수직 농장 기술 해제!', 'success'); }
+  if (S.flags.storyStage >= 1 && !S.systems.sucLabUnlocked) { S.systems.sucLabUnlocked = true; notify('🧬 승계 실험실 기술 해제!', 'success'); }
+  if (S.flags.storyStage >= 2 && !S.systems.communityHub) { S.systems.communityHub = true; notify('🌟 공동체 허브 기술 해제!', 'success'); }
+  if (S.flags.elderLastDone   && !S.systems.hantoTemple)  { S.systems.hantoTemple = true; notify('⛩️ 항도 성전 건설 가능!', 'success'); }
+  if (S.flags.storyStage >= 3 && !S.systems.fusion)       { S.systems.fusion       = true; notify('☢️ 핵융합로 기술 해제!', 'success'); }
 
   // 스토리 이벤트 체크
   STORY_EVENTS.forEach(ev => {
@@ -380,9 +489,11 @@ function doSuccession() {
   S.res.food   -= C.SUC_FOOD;
   S.res.energy -= C.SUC_ENERGY;
 
-  const sucLabCount   = S.zones.filter(z => z.owner === 'player').flatMap(z => z.fac).filter(f => f === 'succession_lab').length;
-  const clinicSucCount = S.zones.filter(z => z.owner === 'player').flatMap(z => z.fac).filter(f => f === 'clinic').length;
-  const sucBonus = (S.policies.sucFocus ? 0.15 : 0) + sucLabCount * 0.10 + clinicSucCount * 0.08;
+  const allFac = S.zones.filter(z => z.owner === 'player').flatMap(z => z.fac);
+  const sucBonus = (S.policies.sucFocus ? 0.15 : 0)
+    + allFac.filter(f => f === 'succession_lab').length * 0.15  // T3: +15%
+    + allFac.filter(f => f === 'research_lab').length   * 0.06  // T2: +6%
+    + allFac.filter(f => f === 'clinic').length          * 0.08; // misc: +8%
   const successRate = Math.min(0.95, (S.res.food / 250) * 0.5 + (S.res.energy / 100) * 0.5 + sucBonus);
   const count = Math.min(3, S.sucQueue);
   let ok = 0, fail = 0;
@@ -1339,24 +1450,41 @@ function selectZone(id) {
 
     let buildMenuHtml = '';
     if (S.buildMenuOpen === z.id) {
-      const availableBuildings = Object.entries(BUILDINGS).filter(([bid, b]) => {
-        if (b.unlock && !S.systems[b.unlock]) return false;
-        return true;
-      });
-      buildMenuHtml = `
-        <div class="build-menu">
-          <div class="bm-title">건설할 건물 선택</div>
-          ${availableBuildings.map(([bid, b]) => {
-            const canAfford = S.res.food >= b.buildCost.food && S.res.energy >= b.buildCost.energy;
-            return `<div class="bm-item ${canAfford ? '' : 'bm-disabled'}" onclick="${canAfford ? `buildInZone(${z.id},'${bid}')` : ''}">
+      const TIER_COLOR = { 1:'#6b8fa8', 2:'#4a90d9', 3:'#c9a227' };
+      const groupsHtml = BUILDING_GROUPS.map(grp => {
+        const items = grp.ids.map(bid => ({ bid, b: BUILDINGS[bid] })).filter(x => x.b);
+        // 카테고리 내 건물이 모두 잠겨있으면 숨김
+        if (items.every(({ b }) => b.unlock && !S.systems[b.unlock])) return '';
+
+        const chainHtml = items.map(({ bid, b }, i) => {
+          const locked   = b.unlock && !S.systems[b.unlock];
+          const canAfford = !locked && S.res.food >= b.buildCost.food && S.res.energy >= b.buildCost.energy;
+          const tierColor = TIER_COLOR[b.tier] || '#888';
+          const badge     = b.tier ? `<span class="bm-tier-badge" style="background:${tierColor}">T${b.tier}</span>` : '';
+          const costStr   = locked ? '🔒 잠김' : `식량 ${b.buildCost.food} · 에너지 ${b.buildCost.energy}`;
+          const arrow     = i > 0 ? `<span class="bm-arrow">▶</span>` : '';
+          return `${arrow}<div class="bm-item ${canAfford ? 'bm-can' : 'bm-disabled'} ${locked ? 'bm-locked' : ''}"
+                        onclick="${canAfford ? `buildInZone(${z.id},'${bid}')` : ''}">
+              ${badge}
               <span class="bm-icon">${b.icon}</span>
               <div class="bm-info">
                 <span class="bm-name">${b.name}</span>
-                <span class="bm-desc">${b.prodDesc || b.desc}</span>
+                <span class="bm-desc">${b.prodDesc}</span>
               </div>
-              <span class="bm-cost">식량 ${b.buildCost.food} / 에너지 ${b.buildCost.energy}</span>
+              <span class="bm-cost">${costStr}</span>
             </div>`;
-          }).join('')}
+        }).join('');
+
+        return `<div class="bm-category">
+          <div class="bm-cat-label">${grp.label}</div>
+          <div class="bm-tier-chain">${chainHtml}</div>
+        </div>`;
+      }).join('');
+
+      buildMenuHtml = `
+        <div class="build-menu">
+          <div class="bm-title">건설할 건물 선택</div>
+          ${groupsHtml}
           <button class="bm-cancel" onclick="toggleBuildMenu(${z.id})">취소</button>
         </div>`;
     }
