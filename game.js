@@ -28,21 +28,34 @@ const C = {
 
 // ─── 건물 정의 ──────────────────────────────────────
 const BUILDINGS = {
-  farm:            { name: '농장',       icon: '🌾', foodPerTurn: 8,  energyDrain: 1, buildCost: { food: 20, energy: 30 }, desc: '식량 +8/월', prodDesc: '+8식량' },
-  powerplant:      { name: '발전소',     icon: '⚡', energyPerTurn:12, buildCost: { food: 10, energy: 0 },  desc: '에너지 +12/월', prodDesc: '+12에너지' },
-  housing:         { name: '주거 구역',  icon: '🏠', moraleBonus: 2,  buildCost: { food: 15, energy: 20 }, desc: '사기 +2 (설치 즉시)', prodDesc: '+2사기' },
-  workshop:        { name: '기술 작업장',icon: '🔧', repairBonus: 5,  energyDrain: 2, buildCost: { food: 10, energy: 25 }, desc: '수리 효율 +5%', prodDesc: '수리↑' },
-  cultural_center: { name: '문화 구역',  icon: '🎭', moralePerTurn: 2, hantoPerTurn: 1, buildCost: { food: 10, energy: 15 }, desc: '사기 +2/월, 항도 +1/월', prodDesc: '+2사기/월' },
-  succession_lab:  { name: '승계 실험실',icon: '🔬', sucBonus: 15,    energyDrain: 3, buildCost: { food: 20, energy: 40 }, desc: '승계 성공률 +15%', prodDesc: '승계↑', unlock: 'sucLabUnlocked' },
+  // ── 기본 생산 ──
+  farm:           { name: '농장',        icon: '🌾', foodPerTurn: 8,   energyDrain: 1, buildCost: { food: 20, energy: 30 }, desc: '식량 +8/월  · [조합] 작업장과 함께면 +3 추가', prodDesc: '+8식량' },
+  hydroponics:    { name: '수경 농장',   icon: '💧', foodPerTurn: 14,  energyDrain: 4, buildCost: { food: 30, energy: 50 }, desc: '식량 +14/월, 에너지 -4/월 — 고효율이지만 전력을 많이 먹는다', prodDesc: '+14식량/-4전력' },
+  powerplant:     { name: '발전소',      icon: '⚡', energyPerTurn:12,                  buildCost: { food: 10, energy: 0  }, desc: '에너지 +12/월  · [조합] 태양전지판과 함께면 +2 추가', prodDesc: '+12에너지' },
+  solar_array:    { name: '태양전지판', icon: '☀️', energyPerTurn: 6,                  buildCost: { food: 5,  energy: 0  }, desc: '에너지 +6/월, 비용 저렴. 출력 낮음  · [조합] 발전소와 함께면 +2', prodDesc: '+6에너지' },
+  // ── 주민 지원 ──
+  housing:        { name: '주거 구역',   icon: '🏠', moraleBonus: 2,                   buildCost: { food: 15, energy: 20 }, desc: '사기 +2 (설치 즉시)', prodDesc: '+2사기' },
+  clinic:         { name: '의무실',      icon: '🏥', sucBonus: 8, popGrowthBonus: 1,   buildCost: { food: 25, energy: 20 }, desc: '승계+8%, 인구 자연증가+1/4턴 — 소모품 공급이 필요해 비쌈', prodDesc: '승계↑·인구↑' },
+  // ── 문화 / 정신 ──
+  cultural_center:{ name: '문화 구역',   icon: '🎭', moralePerTurn: 2, hantoPerTurn: 1, buildCost: { food: 10, energy: 15 }, desc: '사기+2/월, 항도+1/월  · [조합] 명상원과 함께면 항도+2 추가  · [충돌] 방송탑과 함께면 둘 다 -1', prodDesc: '+2사기/+1항도' },
+  meditation:     { name: '명상원',      icon: '🪷', hantoPerTurn: 3, moralePerTurn:-1, buildCost: { food: 12, energy: 10 }, desc: '항도+3/월, 사기-1/월 — 내면에 집중할수록 현실이 불편해진다', prodDesc: '+3항도/-1사기' },
+  propaganda:     { name: '방송탑',      icon: '📢', moralePerTurn: 3, hantoPerTurn:-2, buildCost: { food: 8,  energy: 20 }, desc: '사기+3/월, 항도-2/월 — 체제 선전은 효과적이지만 항도를 갉아먹는다', prodDesc: '+3사기/-2항도' },
+  // ── 기술 / 방어 ──
+  workshop:       { name: '기술 작업장', icon: '🔧', repairBonus: 5,   energyDrain: 2, buildCost: { food: 10, energy: 25 }, desc: '수리 효율+5%  · [조합] 농장·수경 농장과 함께면 식량+3', prodDesc: '수리↑' },
+  barracks:       { name: '방위대',      icon: '🛡️', defenseBonus: 30, energyDrain: 2, buildCost: { food: 15, energy: 30 }, desc: '구역 탈환 저항+30%, 에너지-2/월 — 주민에게 부담이 됨', prodDesc: '방어+30%' },
+  trading_post:   { name: '교역소',      icon: '🔄', tradeEnabled: true, energyDrain:1, expandBonus: 0.10, buildCost: { food: 15, energy: 25 }, desc: '중립 구역 병합+10%, 에너지-1/월 — 자원 교역 가능', prodDesc: '병합↑·교역' },
+  succession_lab: { name: '승계 실험실', icon: '🔬', sucBonus: 15,     energyDrain: 3, buildCost: { food: 20, energy: 40 }, desc: '승계 성공률+15% — 정밀 장비라 유지비가 비쌈', prodDesc: '승계↑', unlock: 'sucLabUnlocked' },
 };
 
 // ─── 정책 정의 ──────────────────────────────────────
 const POLICIES = {
-  foodRation:  { name: '배급 통제',   icon: '🌾', desc: '식량 소비 -1/월, 사기 -1/월',    deltaFood: 1,  deltaMorale: -1 },
-  energySave:  { name: '에너지 절약', icon: '⚡', desc: '에너지 +3/월, 사기 -1/월',       deltaEnergy: 3, deltaMorale: -1 },
-  openCulture: { name: '문화 개방',   icon: '🎭', desc: '항도 +3/월, 에너지 -2/월',       deltaHanto: 3, deltaEnergy: -2 },
-  sucFocus:    { name: '승계 우선',   icon: '🔬', desc: '승계 성공률 +15%',               sucBonus: 0.15 },
-  expansion:   { name: '확장 집중',   icon: '📡', desc: '병합 성공률 +15%',              expandBonus: 0.15 },
+  foodRation:     { name: '배급 통제',   icon: '🌾', desc: '식량 소비 -1/월, 사기 -1/월',         deltaFood: 1,   deltaMorale: -1 },
+  energySave:     { name: '에너지 절약', icon: '⚡', desc: '에너지 +3/월, 사기 -1/월',            deltaEnergy: 3,  deltaMorale: -1 },
+  openCulture:    { name: '문화 개방',   icon: '🎭', desc: '항도 +3/월, 에너지 -2/월',            deltaHanto: 3,  deltaEnergy: -2 },
+  sucFocus:       { name: '승계 우선',   icon: '🔬', desc: '승계 성공률 +15%',                    sucBonus: 0.15 },
+  expansion:      { name: '확장 집중',   icon: '📡', desc: '병합 성공률 +15%',                   expandBonus: 0.15 },
+  securityFocus:  { name: '치안 강화',   icon: '🛡️', desc: '구역 탈환 저항 +10%, 사기 -2/월',    deltaMorale: -2, securityBonus: 0.10 },
+  techFocus:      { name: '기술 집중',   icon: '🔩', desc: '수리 효율 +15%, 에너지 -2/월',        repairBonus: 0.15, deltaEnergy: -2 },
 };
 
 // ─── 구역 유형별 최대 슬롯 ───────────────────────────
@@ -65,7 +78,7 @@ function newGame() {
     zones: buildZones(),
     sucQueue: C.START_SUC_QUEUE,
     flags: { storyStage: 0, eliteRel: C.ELITE_REL_START },
-    policies: { foodRation: false, energySave: false, openCulture: false, sucFocus: false, expansion: false },
+    policies: { foodRation: false, energySave: false, openCulture: false, sucFocus: false, expansion: false, securityFocus: false, techFocus: false },
     systems: { sucBasic: true, hanto: false, zoneMerge: false, sucAdvanced: false, eliteRelations: false },
     log: [],
     pending: [],
@@ -145,26 +158,38 @@ function buildZones() {
 function calcDelta() {
   const myZones = S.zones.filter(z => z.owner === 'player');
   let foodProd = 0, energyProd = 0, energyDrain = myZones.length * 2;
+  let moraleDelta = 0, hantoDelta = 0;
 
   myZones.forEach(z => {
     const eff = z.cond / 100;
     (z.fac || []).forEach(fid => {
       const b = BUILDINGS[fid];
       if (!b) return;
-      if (b.foodPerTurn)  foodProd    += b.foodPerTurn  * eff;
-      if (b.energyPerTurn)energyProd  += b.energyPerTurn* eff;
-      if (b.energyDrain)  energyDrain += b.energyDrain;
+      if (b.foodPerTurn)   foodProd    += b.foodPerTurn   * eff;
+      if (b.energyPerTurn) energyProd  += b.energyPerTurn * eff;
+      if (b.energyDrain)   energyDrain += b.energyDrain;
+      if (b.moralePerTurn) moraleDelta += b.moralePerTurn;
+      if (b.hantoPerTurn)  hantoDelta  += b.hantoPerTurn;
     });
+
+    // ── 콤보 보너스: 같은 구역 내 건물 시너지 ──
+    const fac = z.fac || [];
+    const hasFarm    = fac.some(f => f === 'farm' || f === 'hydroponics');
+    const hasWork    = fac.includes('workshop');
+    const hasCulture = fac.includes('cultural_center');
+    const hasMedit   = fac.includes('meditation');
+    const hasPower   = fac.includes('powerplant');
+    const hasSolar   = fac.includes('solar_array');
+    const hasPropag  = fac.includes('propaganda');
+    if (hasFarm && hasWork)       foodProd   += 3;   // 효율적 유지보수
+    if (hasCulture && hasMedit)   hantoDelta += 2;   // 문화·명상 시너지
+    if (hasPower && hasSolar)     energyProd += 2;   // 전력망 안정화
+    if (hasPropag && hasCulture) { moraleDelta -= 1; hantoDelta -= 1; } // 선전과 문화의 충돌
   });
 
   const foodCon = Math.ceil(S.res.pop / 200);
   const energyPenalty = S.flags.energyPenalty || 0;
 
-  let moraleDelta = 0;
-  let hantoDelta  = 0;
-  const culturalCount = myZones.flatMap(z => z.fac).filter(f => f === 'cultural_center').length;
-  moraleDelta += culturalCount * 2;
-  hantoDelta  += culturalCount * 1;
   if (S.res.food   < C.FOOD_CRISIS)   { moraleDelta -= 2; hantoDelta -= 1; }
   else if (S.res.food > 120)            moraleDelta += 1;
   if (S.res.energy < C.ENERGY_CRISIS) { moraleDelta -= 2; hantoDelta -= 1; }
@@ -215,6 +240,40 @@ function nextTurn() {
 
   // 승계 대기자 자연 증가
   if (S.turn % 4 === 0) S.sucQueue += Math.floor(S.res.pop / 600);
+
+  // 의무실 인구 자연증가
+  if (S.turn % 4 === 0) {
+    const clinicCount = S.zones.filter(z => z.owner === 'player').flatMap(z => z.fac).filter(f => f === 'clinic').length;
+    if (clinicCount > 0) {
+      S.res.pop += clinicCount;
+      addLog(`의무실 ${clinicCount}개 운영 중: 인구 자연증가 +${clinicCount}명.`);
+    }
+  }
+
+  // 기술 발견 보상 지연 처리
+  if (S.flags.techDiscovery && S.turn >= S.flags.techDiscovery) {
+    S.res.food   += 15;
+    S.res.energy += 10;
+    S.flags.techDiscovery = null;
+    addLog('기술 분석 완료. 식량 +15, 에너지 +10.');
+    notify('기술 발견 보상 적용!', 'success');
+  }
+
+  // 기득권 반격 (구역 8개 이상, 기득권 관계 불량, 3턴 쿨)
+  const ownedCount = S.zones.filter(z => z.owner === 'player').length;
+  if (ownedCount >= 8 && S.flags.eliteRel < 45 && !S.flags.cd_eliteCounter && Math.random() < 0.25) {
+    const vulnerable = S.zones.filter(z => z.owner === 'player' && !(z.fac || []).includes('barracks'));
+    if (vulnerable.length > 0) {
+      const target = vulnerable[Math.floor(Math.random() * vulnerable.length)];
+      const resist = (S.policies.securityFocus ? 0.10 : 0) + ((target.fac || []).includes('barracks') ? 0.30 : 0);
+      if (Math.random() > resist) {
+        target.cond = Math.max(20, target.cond - 18);
+        addLog(`⚠ 기득권이 ${target.name} 설비를 방해했다. 상태 악화.`);
+        notify(`${target.name}이 기득권의 방해를 받았습니다.`, 'warning');
+        S.flags.cd_eliteCounter = S.turn + 3;
+      }
+    }
+  }
 
   // 스토리 단계 갱신
   const owned = S.zones.filter(z => z.owner === 'player').length;
@@ -278,6 +337,33 @@ function checkGameOver() {
     : S.flags.saehaSuccession === 'refuse'
     ? '\n\n새하는 그 날을 보지 못할 수도 있다. 하지만 사람들은 볼 것이다.'
     : '';
+
+  // ── 숨겨진 엔딩 ──────────────────────────────────
+  // 항도 엔딩: 항도 75 이상, 15구역 이상, 스토리 3단계
+  if (S.res.hanto >= 75 && owned >= 15 && S.flags.storyStage >= 3 && !S.flags._endingHanto) {
+    S.flags._endingHanto = true;
+    return {
+      type: 'win', title: '항도의 시대',
+      msg: `항도는 신앙이 아니었다.\n\n길을 잃지 않으려는 방식. 기억이 끊기는 우주에서 스스로를 잃지 않으려는 방식.\n\n새하는 그것을 이해했다. 처음엔 몰랐지만 — 지금은 안다.\n\n아크 제로가 케플러 그린을 향해 날아간다.${sucSuffix}`,
+    };
+  }
+  // 통합 엔딩: 기득권 관계 70 이상, 12구역 이상
+  if (S.flags.eliteRel >= 70 && owned >= 12 && !S.flags._endingUnion) {
+    S.flags._endingUnion = true;
+    return {
+      type: 'win', title: '통합',
+      msg: `기득권과 자치 구역이 처음으로 같은 테이블에 앉았다.\n\n완전한 승리는 아니었다. 완전한 패배도 아니었다.\n\n아크 제로 안의 모든 사람이 같은 목적지를 향하고 있다.\n\n그것으로 충분했다.${sucSuffix}`,
+    };
+  }
+  // 승계 완성 엔딩: 누적 승계 성공 50명 이상, 인구 3000 이상
+  if (S.stats.sucOk >= 50 && S.res.pop >= 3000 && !S.flags._endingSuc) {
+    S.flags._endingSuc = true;
+    return {
+      type: 'win', title: '기억이 이어지다',
+      msg: `50명이 넘는 사람들의 기억이 끊기지 않았다.\n\n승계는 죽음이 아니다. 이어짐이다.\n\n아크 제로 안에서, 세대가 겹쳐지며 살아간다.\n\n케플러 그린은 이 사람들이 만든 역사를 가지게 될 것이다.${sucSuffix}`,
+    };
+  }
+  // ─────────────────────────────────────────────────
   if (owned >= C.WIN_ZONES) return { type:'win', title:'아크 제로를 되찾다', msg:`새하의 자치 구역이 아크 제로의 절반 이상을 포괄하게 됐다.\n\n기득권은 협상 테이블로 돌아왔다.\n우주선은 계속 날아간다.\n\n케플러 그린이 가까워지고 있다.${sucSuffix}` };
   if (S.turn >= C.WIN_TURNS) return { type:'win', title:'항해는 계속된다',   msg:`${C.WIN_TURNS}달. 새하는 버텼다.\n\n자치 구역은 살아있다. 아크 제로는 오늘도 날아가고 있다.\n\n케플러 그린이 조금 더 가까워졌다.${sucSuffix}` };
 
@@ -294,8 +380,9 @@ function doSuccession() {
   S.res.food   -= C.SUC_FOOD;
   S.res.energy -= C.SUC_ENERGY;
 
-  const sucLabCount = S.zones.filter(z => z.owner === 'player').flatMap(z => z.fac).filter(f => f === 'succession_lab').length;
-  const sucBonus = (S.policies.sucFocus ? 0.15 : 0) + sucLabCount * 0.1;
+  const sucLabCount   = S.zones.filter(z => z.owner === 'player').flatMap(z => z.fac).filter(f => f === 'succession_lab').length;
+  const clinicSucCount = S.zones.filter(z => z.owner === 'player').flatMap(z => z.fac).filter(f => f === 'clinic').length;
+  const sucBonus = (S.policies.sucFocus ? 0.15 : 0) + sucLabCount * 0.10 + clinicSucCount * 0.08;
   const successRate = Math.min(0.95, (S.res.food / 250) * 0.5 + (S.res.energy / 100) * 0.5 + sucBonus);
   const count = Math.min(3, S.sucQueue);
   let ok = 0, fail = 0;
@@ -328,7 +415,9 @@ function repairZone(zoneId) {
 
   S.res.food   -= 10;
   S.res.energy -= 20;
-  z.cond = Math.min(100, z.cond + 15);
+  const repairExtra = (S.policies.techFocus ? 15 * 0.15 : 0) +
+    ((z.fac || []).includes('workshop') ? 15 * 0.05 : 0);
+  z.cond = Math.min(100, z.cond + 15 + Math.round(repairExtra));
   addLog(`${z.name} 수리 완료. 상태 ${Math.round(z.cond)}%.`);
   render();
 }
@@ -338,7 +427,8 @@ function expandZone(zoneId) {
   if (!z || z.owner !== 'neutral') return;
   if (S.res.food < 40) { notify('식량 부족 (필요: 40)', 'error'); return; }
 
-  const expandBonus = S.policies.expansion ? 0.15 : 0;
+  const hasTradingPost = S.zones.filter(z => z.owner === 'player').flatMap(z => z.fac).includes('trading_post');
+  const expandBonus = (S.policies.expansion ? 0.15 : 0) + (hasTradingPost ? 0.10 : 0);
   const rate = 0.35 + (S.res.morale / 200) + expandBonus;
   if (Math.random() < rate) {
     S.res.food -= 40;
@@ -981,6 +1071,147 @@ const RANDOM_EVENTS = [
       { text: '자원을 구역 개선에 쓴다', apply: s => { s.zones.filter(z => z.owner === 'player').forEach(z => z.cond = Math.min(100, z.cond + 5)); addLog('자원 여유분으로 구역 개선.'); }, result: '작은 보수가 쌓여 큰 차이를 만든다.' },
     ],
   },
+  // ── 추가 이벤트 ──────────────────────────────────
+  {
+    id: 'elite_sabotage', weight: 7,
+    condition: s => s.zones.filter(z => z.owner === 'player').length >= 8 && s.flags.eliteRel < 50,
+    type: 'threat', title: '기득권의 방해',
+    body: `자치 구역 설비 몇 곳에서 원인 불명의 장애가 발생했다. 무경의 보안팀이 개입했다는 소문이 돈다.`,
+    choices: [
+      {
+        text: '증거를 수집하고 공개한다',
+        apply: s => {
+          const z = s.zones.filter(z => z.owner === 'player')[0];
+          if (z) z.cond = Math.max(20, z.cond - 8);
+          s.res.hanto += 5;
+          addLog('기득권 방해 증거 공개. 항도 지지율 상승.');
+        },
+        result: '증거를 공개하자 소문이 확산됐다. 기득권은 부인했다. 그러나 사람들은 알았다.',
+      },
+      {
+        text: '방위대를 배치한다 (에너지 -15)',
+        apply: s => { s.res.energy -= 15; s.flags.cd_eliteCounter = s.turn + 8; addLog('방위대 긴급 배치. 추가 방해 차단.'); },
+        result: '방위대가 순찰을 강화했다. 방해 시도가 줄었다.',
+      },
+      {
+        text: '태린에게 조용히 항의 연락을 보낸다',
+        apply: s => { s.flags.eliteRel += 4; addLog('기득권에 조용한 항의. 관계 소폭 개선.'); },
+        result: '"확인해 보겠습니다." 태린의 목소리는 평온했다. 그 평온함이 더 불안했다.',
+      },
+    ],
+  },
+  {
+    id: 'zone_trade', weight: 7,
+    condition: s => s.zones.some(z => z.owner === 'neutral') && s.res.energy > 50,
+    type: 'opportunity', title: '중립 구역의 교역 제안',
+    body: `인접한 중립 구역에서 연락이 왔다. 식량이 부족하지만 에너지는 여유가 있다고. 서로 필요한 것을 가지고 있다.`,
+    choices: [
+      {
+        text: '교역한다 (에너지 -20, 식량 +35)',
+        apply: s => { s.res.energy -= 20; s.res.food += 35; addLog('중립 구역과 교역. 식량 확보.'); },
+        result: '거래는 공정했다. 기득권이 좋아하지 않을 것이었다.',
+      },
+      {
+        text: '교역하고 병합을 제안한다 (에너지 -20, 식량 +20)',
+        apply: s => {
+          s.res.energy -= 20; s.res.food += 20;
+          const nz = s.zones.filter(z => z.owner === 'neutral');
+          if (nz.length > 0 && Math.random() < 0.55) {
+            const t = nz[0]; t.owner = 'player'; s.stats.expanded++; updateZoneCounts();
+            addLog(`교역 후 ${t.name} 병합. 신뢰가 문을 열었다.`);
+          } else { addLog('교역 완료. 병합 제안은 다음 기회로.'); }
+        },
+        result: '거래가 신뢰가 됐다.',
+      },
+      {
+        text: '무상으로 지원한다 (식량 -20)',
+        apply: s => { s.res.food -= 20; s.res.morale += 3; s.res.hanto += 4; addLog('무상 지원. 항도·사기 상승.'); },
+        result: '"받기만 할 수는 없어요." 그들이 나중에 돌려줄 것이라는 생각은 하지 않았다.',
+      },
+    ],
+  },
+  {
+    id: 'tech_discovery', weight: 5,
+    condition: s => s.zones.some(z => z.owner === 'player' && (z.fac || []).includes('workshop')),
+    type: 'opportunity', title: '기술 발견',
+    body: `39구역 작업장에서 흥미로운 발견이 있었다. 오래된 설계도 사본. 새하가 직접 해석하면 실용화할 수 있다.`,
+    choices: [
+      {
+        text: '직접 분석한다 (3개월 후 보상)',
+        apply: s => { s.flags.techDiscovery = s.turn + 3; addLog('기술 발견 분석 시작. 3개월 후 완료 예정.'); },
+        result: '새하의 손가락이 도면 위를 움직였다. 익숙하면서 낯선 선들이었다.',
+      },
+      {
+        text: '팀에 맡긴다 (즉시, 효과 작음)',
+        apply: s => { s.zones.filter(z => z.owner === 'player').forEach(z => z.cond = Math.min(100, z.cond + 6)); addLog('기술팀 설계도 적용. 구역 상태 개선.'); },
+        result: '팀이 일주일 만에 해석을 마쳤다. 작은 차이지만 분명한 차이였다.',
+      },
+    ],
+  },
+  {
+    id: 'faction_conflict', weight: 6,
+    condition: s => s.res.hanto > 55 && s.res.morale < 45,
+    type: 'crisis', title: '항도파와 실용파의 갈등',
+    body: `주거 구역에서 말다툼이 벌어졌다. 한쪽은 항도 집회를 열고 싶고, 다른 쪽은 그 시간에 설비 수리를 해야 한다고 한다. 작은 분쟁이지만, 더 커질 수 있다.`,
+    choices: [
+      {
+        text: '집회를 먼저 허용한다',
+        apply: s => { s.res.hanto += 5; s.res.morale -= 3; addLog('항도 집회 우선 허용. 실용파 불만 증가.'); },
+        result: '집회는 평화롭게 끝났다. 설비 수리는 하루 늦어졌다.',
+      },
+      {
+        text: '수리 먼저, 집회 이틀 후 허용',
+        apply: s => { s.res.morale += 3; s.res.hanto -= 2; addLog('실용적 조정. 양측 타협.'); },
+        result: '아무도 완전히 만족하지 않았다. 그래서 타협이었다.',
+      },
+      {
+        text: '새하가 직접 중재한다 — 수리를 도우며 집회도 참석',
+        apply: s => { s.res.hanto += 3; s.res.morale += 3; addLog('새하 직접 중재. 양측 신뢰 상승.'); },
+        result: '새하가 집회 전에 수리를 도왔다. 그것으로 충분했다.',
+      },
+    ],
+  },
+  {
+    id: 'pop_surge', weight: 5,
+    condition: s => s.sucQueue > 40,
+    type: 'crisis', title: '승계 대기 폭발',
+    body: `소문이 퍼졌다. 기득권 구역의 승계가 지연되고 있다. 사람들이 자치 구역의 승계실을 찾아오기 시작했다. 48시간 만에 대기자가 20명 늘었다.`,
+    choices: [
+      {
+        text: '모두를 받아들인다',
+        apply: s => { s.sucQueue += 20; s.res.morale += 5; s.res.hanto += 5; addLog('대기자 전원 수용. 승계 대기 급증.'); },
+        result: '줄이 길어졌다. 하지만 줄이 존재한다는 것, 그것이 중요했다.',
+      },
+      {
+        text: '자원 상황을 설명하고 일부만 받는다',
+        apply: s => { s.sucQueue += 8; s.res.morale += 2; addLog('대기자 일부 수용. 자원 상황 설명.'); },
+        result: '이해한 사람도 있었다. 이해하지 못한 사람도 있었다.',
+      },
+      {
+        text: '기존 대기자 우선을 유지한다',
+        apply: s => { s.res.food += 10; addLog('기존 대기자 우선. 신규 수용 제한.'); },
+        result: '문 앞에서 돌아간 사람들이 어디로 갔는지는 알 수 없었다.',
+      },
+    ],
+  },
+  {
+    id: 'barracks_effect', weight: 4,
+    condition: s => s.zones.some(z => z.owner === 'player' && (z.fac || []).includes('barracks')),
+    type: 'opportunity', title: '방위대의 부작용',
+    body: `방위대가 배치된 구역 주민들 사이에서 불만이 나왔다. 물자 검색과 야간 순찰이 일상이 됐다. 안전해졌지만, 뭔가 달라졌다.`,
+    choices: [
+      {
+        text: '방위대 운영 방식을 완화한다',
+        apply: s => { s.res.morale += 5; s.res.hanto += 3; addLog('방위대 운영 방식 완화. 주민 신뢰 회복.'); },
+        result: '순찰이 줄었다. 사람들이 다시 복도에서 이야기를 나눴다.',
+      },
+      {
+        text: '안전이 최우선이라고 설명한다',
+        apply: s => { s.res.morale -= 3; addLog('방위대 유지. 주민 이해 요청. 불만 잔존.'); },
+        result: '"우리가 보호받는 건지 감시받는 건지 모르겠어요." 말이 마음에 남았다.',
+      },
+    ],
+  },
 ];
 
 // ─── 렌더링 ─────────────────────────────────────────
@@ -1142,16 +1373,36 @@ function selectZone(id) {
       </div>`;
   }
 
+  // 콤보 보너스 표시
+  let comboHtml = '';
+  if (z.owner === 'player') {
+    const fac = z.fac || [];
+    const combos = [];
+    if ((fac.includes('farm') || fac.includes('hydroponics')) && fac.includes('workshop'))
+      combos.push('🌾🔧 효율적 유지보수: 식량 +3/월');
+    if (fac.includes('cultural_center') && fac.includes('meditation'))
+      combos.push('🎭🪷 문화·명상 시너지: 항도 +2/월');
+    if (fac.includes('powerplant') && fac.includes('solar_array'))
+      combos.push('⚡☀️ 전력망 안정화: 에너지 +2/월');
+    if (fac.includes('propaganda') && fac.includes('cultural_center'))
+      combos.push('⚠️ 선전·문화 충돌: 사기·항도 각 -1/월');
+    if (combos.length > 0)
+      comboHtml = `<div class="combo-box">${combos.map(c => `<div class="combo-item">${c}</div>`).join('')}</div>`;
+  }
+
   let actHtml = '';
   if (z.owner === 'player') {
+    const repairEff = 15 + (S.policies.techFocus ? Math.round(15*0.15) : 0) + ((z.fac||[]).includes('workshop') ? 1 : 0);
     actHtml = `
       <div class="zone-actions">
-        <button class="btn-action" onclick="repairZone(${z.id})">🔧 시설 수리 (식량 10, 에너지 20)</button>
+        <button class="btn-action" onclick="repairZone(${z.id})">🔧 시설 수리 (식량 10, 에너지 20) → +${repairEff}%</button>
       </div>`;
   } else if (z.owner === 'neutral') {
+    const hasTrade = S.zones.filter(z2 => z2.owner === 'player').flatMap(z2 => z2.fac).includes('trading_post');
+    const mergeRate = Math.round((0.35 + S.res.morale/200 + (S.policies.expansion?0.15:0) + (hasTrade?0.10:0)) * 100);
     actHtml = `
       <div class="zone-actions">
-        <button class="btn-action expand" onclick="expandZone(${z.id})">🤝 병합 협상 (식량 40 필요)</button>
+        <button class="btn-action expand" onclick="expandZone(${z.id})">🤝 병합 협상 (식량 40 필요) · 성공률 약 ${mergeRate}%</button>
       </div>`;
   }
 
@@ -1176,6 +1427,7 @@ function selectZone(id) {
       </div>
     </div>
     ${facHtml}
+    ${comboHtml}
     ${actHtml}`;
 
   // 선택 표시 갱신

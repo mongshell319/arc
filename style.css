@@ -588,8 +588,24 @@ body {
 .policy-toggle.off { background: transparent; border-color: var(--text-mute); color: var(--text-mute); }
 .policy-toggle:hover { opacity: 0.8; }
 
+/* ─── 콤보 보너스 박스 ─── */
+.combo-box {
+  margin: 8px 0 4px;
+  padding: 6px 8px;
+  background: rgba(74,144,217,0.06);
+  border: 1px solid rgba(74,144,217,0.25);
+  border-radius: 4px;
+}
+.combo-item {
+  font-size: 10px;
+  color: var(--blue);
+  padding: 1px 0;
+  line-height: 1.5;
+}
+.combo-item:first-child { margin-top: 0; }
+
 /* ─── 액션 패널 너비 확장 ─── */
-#action-panel { width: 220px; }
+#action-panel { width: 240px; }
 
 /* ─── 애니메이션 ─── */
 @keyframes fadeIn {
