@@ -30,7 +30,9 @@
   <!-- ── 메인 게임 화면 ── -->
   <div id="game-screen" class="screen hidden">
 
-    <!-- HUD 상단 -->
+    <!-- ┌─────────────────────────────────────┐ -->
+    <!-- │  상단 상태바 (시간 + 핵심 수치)        │ -->
+    <!-- └─────────────────────────────────────┘ -->
     <header id="hud">
       <div class="hud-left">
         <span class="hud-ship">ARC-0</span>
@@ -59,9 +61,16 @@
           </div>
         </div>
         <div class="res-block" id="rb-morale">
+          <span class="res-icon">💪</span>
+          <div class="res-vals">
+            <span class="res-main"><span id="val-morale">55</span>%</span>
+            <span class="res-lbl">주민 사기</span>
+          </div>
+        </div>
+        <div class="res-block" id="rb-hanto">
           <span class="res-icon">✦</span>
           <div class="res-vals">
-            <span class="res-main"><span id="val-morale">45</span>%</span>
+            <span class="res-main"><span id="val-hanto">45</span>%</span>
             <span class="res-lbl">항도 지지율</span>
           </div>
         </div>
@@ -78,23 +87,25 @@
       </div>
     </header>
 
-    <!-- 메인 컨텐츠 -->
+    <!-- ┌──────────┬──────────────────────┬──────────┐ -->
+    <!-- │ 자원패널  │    구역 맵 (중앙)      │ 인물 패널 │ -->
+    <!-- └──────────┴──────────────────────┴──────────┘ -->
     <div id="main-area">
 
-      <!-- 왼쪽: 구역 패널 -->
+      <!-- 왼쪽: 구역 현황 + 승계 버튼 -->
       <aside id="zone-panel">
         <div class="panel-head">
           <h2>구역 현황</h2>
           <div class="zone-counts">
             <span class="zc-player">자치 <b id="cnt-player">5</b></span>
-            <span class="zc-neutral">중립 <b id="cnt-neutral">12</b></span>
-            <span class="zc-enemy">기득권 <b id="cnt-enemy">30</b></span>
+            <span class="zc-neutral">중립 <b id="cnt-neutral">21</b></span>
+            <span class="zc-enemy">기득권 <b id="cnt-enemy">21</b></span>
           </div>
         </div>
         <div id="zones-list"></div>
       </aside>
 
-      <!-- 중앙: 상세 + 로그 -->
+      <!-- 중앙: 구역 상세 정보 -->
       <main id="center-panel">
         <div id="zone-detail">
           <div class="detail-placeholder">
@@ -108,7 +119,7 @@
         </div>
       </main>
 
-      <!-- 오른쪽: 현황 + 행동 + 정책 -->
+      <!-- 오른쪽: 현황 요약 + 행동 + 정책 + 인물 관계 -->
       <aside id="action-panel">
         <h3>현황 요약</h3>
         <div id="status-box"></div>
@@ -144,6 +155,12 @@
   </div>
 
 </div>
+
+<!-- Three.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- 3D 배경 레이어 (게임 로직과 독립적) -->
+<script src="three-scene.js"></script>
+<!-- 게임 로직 -->
 <script src="game.js"></script>
 </body>
 </html>

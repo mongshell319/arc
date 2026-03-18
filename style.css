@@ -1,20 +1,40 @@
-/* ─── 기본 변수 ─── */
+/* ─── 기본 변수 (TECHNICAL.md 팔레트) ─── */
 :root {
-  --bg: #06091a;
-  --bg-card: #0c1227;
-  --bg-card-hover: #121830;
-  --border: #1c2b47;
-  --border-hi: #2a4070;
-  --text: #e2d9c8;
-  --text-dim: #7a8ba0;
-  --text-mute: #3a4a5e;
-  --gold: #d4962a;
-  --gold-hi: #f0b040;
-  --blue: #4a90d9;
-  --green: #4a9e72;
-  --red: #c84a4a;
-  --purple: #7a5fbe;
-  --amber: #e8a23a;
+  /* 배경 */
+  --color-space:      #050a14;
+  --color-hull:       #1a2332;
+
+  /* 구역 빛 */
+  --color-normal:     #d4891a;
+  --color-crisis:     #c0392b;
+  --color-succession: #2980b9;
+  --color-engine:     #4fc3f7;
+
+  /* UI 오버레이 */
+  --ui-bg:            rgba(5, 10, 20, 0.88);
+  --ui-border:        #2e4057;
+  --ui-text:          #e8d5b7;
+  --ui-text-dim:      #8899aa;
+  --ui-accent:        #d4891a;
+  --ui-accent-danger: #c0392b;
+  --ui-accent-safe:   #27ae60;
+
+  /* 기존 변수 유지 (하위 호환) */
+  --bg:           #050a14;
+  --bg-card:      #0f1a2e;
+  --bg-card-hover:#162440;
+  --border:       #2e4057;
+  --border-hi:    #d4891a;
+  --text:         #e8d5b7;
+  --text-dim:     #8899aa;
+  --text-mute:    #4a5a6a;
+  --gold:         #d4891a;
+  --gold-hi:      #f0a830;
+  --blue:         #2980b9;
+  --green:        #27ae60;
+  --red:          #c0392b;
+  --purple:       #8e44ad;
+  --amber:        #d4891a;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -37,7 +57,7 @@ body {
 
 /* ─── 인트로 화면 ─── */
 #intro-screen {
-  background: radial-gradient(ellipse at 50% 40%, #0d1f40 0%, #030508 100%);
+  background: radial-gradient(ellipse at 50% 40%, #152848 0%, #080e20 100%);
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
 }
@@ -446,7 +466,7 @@ body {
 
 /* ─── 게임오버 화면 ─── */
 #end-screen {
-  background: radial-gradient(ellipse at center, #0a1535 0%, #030508 100%);
+  background: radial-gradient(ellipse at center, #122040 0%, #080e20 100%);
   display: flex; align-items: center; justify-content: center;
 }
 
@@ -588,8 +608,50 @@ body {
 .policy-toggle.off { background: transparent; border-color: var(--text-mute); color: var(--text-mute); }
 .policy-toggle:hover { opacity: 0.8; }
 
+/* ─── 빌드 메뉴 티어 체인 ─── */
+.bm-category { margin-bottom: 10px; }
+.bm-cat-label {
+  font-size: 10px; font-weight: 700; color: var(--text-mute);
+  letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 3px 0 4px; border-bottom: 1px solid rgba(255,255,255,0.07);
+  margin-bottom: 5px;
+}
+.bm-tier-chain {
+  display: flex; flex-wrap: wrap; gap: 4px; align-items: flex-start;
+}
+.bm-arrow {
+  color: var(--text-mute); font-size: 10px;
+  align-self: center; padding: 0 1px; opacity: 0.5;
+}
+.bm-tier-badge {
+  font-size: 9px; font-weight: 700;
+  padding: 1px 4px; border-radius: 3px;
+  color: #fff; display: block; margin-bottom: 2px;
+  letter-spacing: 0.05em;
+}
+.bm-item { position: relative; }
+.bm-can  { cursor: pointer; }
+.bm-can:hover { border-color: var(--blue) !important; background: rgba(74,144,217,0.12) !important; }
+.bm-locked { opacity: 0.45; cursor: default; filter: grayscale(0.5); }
+
+/* ─── 콤보 보너스 박스 ─── */
+.combo-box {
+  margin: 8px 0 4px;
+  padding: 6px 8px;
+  background: rgba(74,144,217,0.06);
+  border: 1px solid rgba(74,144,217,0.25);
+  border-radius: 4px;
+}
+.combo-item {
+  font-size: 10px;
+  color: var(--blue);
+  padding: 1px 0;
+  line-height: 1.5;
+}
+.combo-item:first-child { margin-top: 0; }
+
 /* ─── 액션 패널 너비 확장 ─── */
-#action-panel { width: 220px; }
+#action-panel { width: 240px; }
 
 /* ─── 애니메이션 ─── */
 @keyframes fadeIn {
