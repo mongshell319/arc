@@ -1065,6 +1065,203 @@ const STORY_EVENTS = [
     ],
   },
   {
+    id: 'seonu_conflict',
+    trigger: s => s.turn >= 20 && !s.flags.seonuConflictDone && s.flags.storyStage >= 1,
+    type: 'story',
+    title: '선우의 질문',
+    body: `선우가 새하를 찾아왔다.
+
+"기득권이랑 협상하는 거 봤어요. 실망이에요."
+
+새하는 잠깐 생각하다 물었다.
+
+"뭘 원하는 거예요, 선우 씨."
+
+"기득권을 무너뜨리는 거요. 공평한 배분. 처음부터 그게 목표였잖아요."
+
+"그게 가능한 방법이에요?"
+
+"당신이 의지가 없는 거잖아요."`,
+    choices: [
+      {
+        text: '"지금 방법으로는 사람이 다쳐요"',
+        apply(s) { s.flags.seonuRel = (s.flags.seonuRel || 30) - 5; s.res.morale += 3; s.flags.seonuConflictDone = true; addLog('선우와 대립. 사람이 다친다는 입장 고수.'); },
+        result: '선우가 일어났다. "그래도 결국 타협은 굴복이에요." 새하는 그 말이 틀렸다고 생각하지 않았다.',
+      },
+      {
+        text: '"당신 말이 맞아요. 방법을 찾읍시다"',
+        apply(s) { s.flags.seonuRel = (s.flags.seonuRel || 30) + 10; s.flags.eliteRel -= 5; s.flags.seonuConflictDone = true; addLog('선우 입장 수용. 기득권 관계 냉각.'); },
+        result: '선우가 처음으로 새하를 똑바로 봤다. "그 말 믿겠어요." 아직 믿지 않는다는 표정이었다.',
+      },
+      {
+        text: '"나도 모르겠어요"',
+        apply(s) { s.flags.seonuRel = (s.flags.seonuRel || 30) + 5; s.flags.seonuConflictDone = true; addLog('선우에게 솔직하게 고백.'); },
+        result: '선우가 잠깐 멈췄다. "그 말은 처음 들어요." 그리고 나갔다. 적이 된 것 같지는 않았다.',
+      },
+    ],
+  },
+  {
+    id: 'elder_final_talk',
+    trigger: s => s.flags.zone6Done && !s.flags.elderFinalDone,
+    type: 'story',
+    title: '마지막 대화',
+    body: `새하가 오래된 자를 찾아갔다.
+
+44구역. 그는 창가에 앉아 있었다.
+
+새하: "왜 어머니한테 진짜 이유를 말 안 했어요."
+
+오래된 자: "말했으면 거부했을 거예요."
+
+새하: "그러면 됐잖아요."
+
+오래된 자: "그러면 이 배에 필요한 사람이 없어졌을 거예요."
+
+새하: "그게 어머니보다 중요했어요?"
+
+오래된 자가 오래 침묵했다.`,
+    choices: [
+      {
+        text: '더 이상 묻지 않는다',
+        apply(s) { s.flags.elderRel = (s.flags.elderRel || 60) + 10; s.flags.elderFinalDone = true; addLog('오래된 자와의 대화를 멈췄다. 관계 개선.'); },
+        result: '"...모르겠어요. 그때는 그렇게 생각했어요." 새하는 창밖을 봤다. 이 어둠 어딘가에 케플러 그린이 있다.',
+      },
+      {
+        text: '"당신이 한 일이 잘못됐다고 생각해요"',
+        apply(s) { s.flags.elderRel = Math.max(0, (s.flags.elderRel || 60) - 5); s.res.morale += 5; s.flags.elderFinalDone = true; addLog('오래된 자에게 잘못을 말했다.'); },
+        result: '"알아요." 그것이 전부였다. 변명도 설명도 없이. 그리고 그것이 새하를 더 힘들게 했다.',
+      },
+    ],
+  },
+  {
+    id: 'memory_harayuki',
+    trigger: s => s.stats.sucOk > 0 && !s.flags.memHarayukiDone,
+    type: 'story',
+    title: '기억 — 하라 유키의 첫 번째 승계',
+    body: `출발 후 15년째.
+
+하라 유키가 승계실 시술대에 누웠다. 집도 승계사가 물었다. "준비됐습니까?"
+
+"아니요. 그래도 합니다."
+
+하라 유키-2가 눈을 떴다. 기억이 있었다. 그런데 커피 맛이 없었다. 정확히 어떤 맛이었는지. 그녀는 승계사에게 물었다. "커피가 어떤 맛이었는지 아십니까?"
+
+"쓰고 향이 있다고 들었습니다."
+
+하라 유키는 일어나 앉았다. "괜찮습니다. 계속하죠."`,
+    choices: [
+      {
+        text: '기록을 읽다',
+        apply(s) { s.flags.memHarayukiDone = true; addLog('하라 유키의 첫 번째 승계 기록을 읽다.'); },
+        result: '하라 유키-2는 이후 37년을 더 살았다. 커피 맛은 끝내 기억하지 못했다.',
+      },
+    ],
+  },
+  {
+    id: 'memory_byeol_mother',
+    trigger: s => s.flags.elder1Done && !s.flags.memByeolDone,
+    type: 'story',
+    title: '기억 — 별과 새하 어머니',
+    body: `출발 후 28년째.
+
+교실. 열다섯 살 이서가 별에게 물었다.
+
+"선생님, 승계를 안 하면 어떻게 돼요?"
+
+별: "늙어."
+
+이서: "그게 다예요?"
+
+별: "응. 그게 다야."
+
+이서: "선생님은 승계할 거예요?"
+
+별이 창밖을 봤다.
+
+"아직 모르겠어."`,
+    choices: [
+      {
+        text: '기록을 읽다',
+        apply(s) { s.flags.memByeolDone = true; s.flags.byeolRel = (s.flags.byeolRel || 20) + 5; addLog('별과 새하 어머니의 기억 기록을 읽다.'); },
+        result: '별은 그 학생이 훗날 승계를 거부한다는 것을 몰랐다. 그리고 그 학생의 딸이 지금 당신 옆에 있다.',
+      },
+    ],
+  },
+  {
+    id: 'memory_elder_design',
+    trigger: s => s.flags.zone6Done && !s.flags.memElderDesignDone,
+    type: 'story',
+    title: '기억 — 오래된 자의 설계팀 시절',
+    body: `2360년. 설계 회의실.
+
+오래된 자가 도면 위 한 구역을 손가락으로 짚었다.
+
+"이 구역은 공식 도면에서 빼겠습니다."
+
+동료: "왜요?"
+
+"때가 되면 필요한 사람이 찾아낼 겁니다."
+
+오래된 자가 연필로 작게 썼다. 6.`,
+    choices: [
+      {
+        text: '기록을 읽다',
+        apply(s) { s.flags.memElderDesignDone = true; addLog('오래된 자의 설계팀 시절 기록을 읽다.'); },
+        result: '오래된 자는 그 순간을 4번의 승계를 거치는 동안 한 번도 잊지 않았다. 희석되지 않은 것들이 있다. 그것들은 대부분 작은 결정이다.',
+      },
+    ],
+  },
+  {
+    id: 'memory_doyul_parent',
+    trigger: s => s.flags.doyulRel >= 65 && !s.flags.memDoyulDone,
+    type: 'story',
+    title: '기억 — 도율 부모 세대',
+    body: `도율 일곱 살.
+
+어머니가 말했다.
+
+"네가 있어서 승계했어."
+
+"다 크면?"
+
+"네 애가 크는 것도 보고 싶을 것 같아서."
+
+도율의 어머니는 세 번째 승계에서 그 대화를 잃었다.`,
+    choices: [
+      {
+        text: '기록을 읽다',
+        apply(s) { s.flags.memDoyulDone = true; addLog('도율 부모 세대의 기억 기록을 읽다.'); },
+        result: '도율은 기억한다. 그래서 말하지 않는다. 말하면 어머니가 슬퍼할 테니까.',
+      },
+    ],
+  },
+  {
+    id: 'memory_equal_org',
+    trigger: s => s.flags.seonuConflictDone && !s.flags.memEqualDone,
+    type: 'story',
+    title: '기억 — 균등회 초창기',
+    body: `출발 후 32년째.
+
+다섯 명의 모임.
+
+선우의 아버지: "우리 뭘 원하는 거야?"
+
+누군가 답했다.
+
+"그냥 공평하게. 승계를 공평하게. 밥을 공평하게. 그게 다야."
+
+선우의 아버지: "그게 다인데 왜 이렇게 어렵냐."
+
+아무도 대답하지 않았다.`,
+    choices: [
+      {
+        text: '기록을 읽다',
+        apply(s) { s.flags.memEqualDone = true; addLog('균등회 초창기 기록을 읽다.'); },
+        result: '그 다섯 명 중 셋은 균등회가 커지는 것을 보지 못했다. 원하는 것은 처음부터 지금까지 같다. 공평하게.',
+      },
+    ],
+  },
+  {
     id: 'final_succession',
     trigger: s => s.turn >= 60 && s.flags.zone6Done && !s.flags.finalSucDone,
     type: 'story',
@@ -1339,6 +1536,376 @@ const RANDOM_EVENTS = [
       },
     ],
   },
+  {
+    id: 'byeol_sick', weight: 5,
+    condition: s => s.flags.byeolRel >= 20 && !s.flags.byeolConvalescent,
+    type: 'crisis', title: '별의 건강 이상',
+    body: `별이 쓰러졌다는 연락이 왔다. 44구역 의무실.
+
+승계를 권유해야 하는 상황이지만, 별은 승계를 거부한 사람이다.
+
+의무실 앞에서 새하는 멈췄다.`,
+    choices: [
+      {
+        text: '아무 말 하지 않고 곁에 있는다',
+        apply: s => {
+          s.flags.byeolRel = (s.flags.byeolRel || 20) + 8;
+          s.flags.byeolConvalescent = true;
+          addLog('별의 곁에 있었다. 말 없이.');
+        },
+        result: '"말 안 해줘서 고마워요." 별이 조용히 말했다. "새하 어머니도 이런 사람이었어요."',
+      },
+      {
+        text: '승계를 권유한다',
+        apply: s => {
+          s.flags.byeolRel = Math.max(0, (s.flags.byeolRel || 20) - 8);
+          s.flags.byeolConvalescent = true;
+          addLog('별에게 승계를 권유했다. 거절당했다.');
+        },
+        result: '"괜찮아요. 이게 내가 선택한 거예요." 별의 목소리에 흔들림이 없었다.',
+      },
+      {
+        text: '최선을 다해 간호한다 (에너지 -5)',
+        apply: s => {
+          s.res.energy -= 5;
+          s.flags.byeolRel = (s.flags.byeolRel || 20) + 5;
+          s.flags.byeolSecretClues = (s.flags.byeolSecretClues || 0) + 2;
+          s.flags.byeolConvalescent = true;
+          addLog('별을 간호했다. 어머니에 대한 이야기를 조금 들었다.');
+        },
+        result: '"새하 어머니도 이런 사람이었어요. 정확히 당신같이." 별이 눈을 감았다.',
+      },
+    ],
+  },
+  {
+    id: 'seonu_radical', weight: 6,
+    condition: s => s.flags.seonuRel !== undefined && s.flags.seonuRel < 35 && s.turn > 15,
+    type: 'threat', title: '강무의 움직임',
+    body: `강무가 자치 구역 내 비공식 모임을 운영하고 있다는 보고가 들어왔다.
+
+도율이 조용히 말했다. "12명 정도예요. 아직 작아요."
+
+새하는 설계도를 내려놨다.`,
+    choices: [
+      {
+        text: '강무를 직접 불러 묻는다',
+        apply: s => {
+          s.flags.kangmuRel = Math.max(0, (s.flags.kangmuRel || 40) - 5);
+          s.flags.kangmuWarned = true;
+          addLog('강무와 직접 대면. 관계 냉각.');
+        },
+        result: '"저는 더 빠른 길을 원합니다." 강무의 눈빛이 흔들리지 않았다.',
+      },
+      {
+        text: '도율에게 파악을 맡긴다',
+        apply: s => {
+          s.flags.doyulRel = (s.flags.doyulRel || 50) + 3;
+          addLog('도율에게 강무 파악 의뢰.');
+        },
+        result: '3일 후 도율이 보고했다. "12명이요. 전부 반란 때 청사에 있었던 사람들이에요."',
+      },
+      {
+        text: '지금은 모른 척한다',
+        apply: s => {
+          s.flags.kangmuIgnored = true;
+          addLog('강무 움직임 관망.');
+        },
+        result: '강무는 계속 움직였다. 모르는 척하는 것이 허락은 아니었는데.',
+      },
+    ],
+  },
+  {
+    id: 'doyul_silent', weight: 5,
+    condition: s => s.turn > 25 && !s.flags.doyulConfessTriggered,
+    type: 'story', title: '도율의 침묵',
+    body: `며칠째 도율이 눈을 피하고 있었다.
+
+보고는 정확했다. 업무는 완벽했다. 그러나 새하와 눈을 마주치지 않았다.
+
+새하는 그것을 알아챘다.`,
+    choices: [
+      {
+        text: '직접 묻는다',
+        apply: s => {
+          s.flags.doyulConfessTriggered = true;
+          s.flags.doyulRel = (s.flags.doyulRel || 50) + 5;
+          addLog('도율에게 직접 물었다. 무언가를 고백했다.');
+        },
+        result: '도율이 오래 침묵했다가 말했다. "청사 진입 그날 밤. 저는 알고 있었어요. 강경파 계획을." 새하는 아무 말도 하지 않았다.',
+      },
+      {
+        text: '기다린다',
+        apply: s => {
+          s.flags.doyulRel = (s.flags.doyulRel || 50) + 2;
+          addLog('도율을 기다렸다.');
+        },
+        result: '4일 후 도율이 먼저 왔다. "말해야 할 게 있어요." 그 이야기는 길었다.',
+      },
+    ],
+  },
+  {
+    id: 'succession_wait', weight: 7,
+    condition: s => s.sucQueue > 20 && s.turn > 10,
+    type: 'crisis', title: '승계 대기자의 항의',
+    body: `대기 4년이 넘은 시민이 운영위원장실에 왔다.
+
+분노하지 않았다. 그냥 물었다.
+
+"저는 언제쯤 될까요."
+
+새하는 그 질문에 즉시 답을 할 수 없었다.`,
+    choices: [
+      {
+        text: '우선순위를 조정해 빨리 처리한다 (식량 -10)',
+        needFood: 10,
+        apply: s => {
+          s.res.food -= 10;
+          s.res.morale += 5;
+          if (s.sucQueue > 0) { s.sucQueue--; s.res.pop++; s.stats.sucOk++; }
+          addLog('승계 우선순위 조정. 대기자 처리.');
+        },
+        result: '처리됐다. 그는 감사하다는 말 없이 돌아갔다. 기다렸던 사람에게는 당연한 것이었다.',
+      },
+      {
+        text: '기준을 설명하고 기다리게 한다',
+        apply: s => {
+          addLog('승계 기준 설명. 대기 유지.');
+        },
+        result: '3개월 후 그는 승계됐다. 이식률 78%. 일부 기억이 흐려졌다. 그가 기다린 이유가 그 중에 있었는지 새하는 몰랐다.',
+      },
+      {
+        text: '이음단 상담을 연결해준다',
+        apply: s => {
+          s.flags.eumRel = (s.flags.eumRel || 40) + 3;
+          addLog('이음단 상담 연결.');
+        },
+        result: '"잃을 게 뭔지 알고 기다린 거예요." 이음이 나중에 새하에게 말했다.',
+      },
+    ],
+  },
+  {
+    id: 'hanto_dropout', weight: 5,
+    condition: s => s.res.hanto > 40 && s.turn > 20,
+    type: 'crisis', title: '항도 이탈자',
+    body: `항도 신자 한 명이 공개적으로 탈퇴를 선언했다.
+
+"왜 이렇게 힘든가. 항도가 답을 준다고 했는데."
+
+다른 신자들이 동요하고 있다.`,
+    choices: [
+      {
+        text: '개입하지 않는다',
+        apply: s => {
+          s.res.hanto -= 8;
+          addLog('항도 이탈 방관. 지지율 하락.');
+        },
+        result: '일주일 후 5명이 더 이탈했다.',
+      },
+      {
+        text: '새하가 직접 그를 만난다',
+        apply: s => {
+          s.res.morale += 3;
+          s.flags.hantoInnerFlag = true;
+          addLog('이탈자 직접 면담. 새하 내면 질문.');
+        },
+        result: '"위원장님은 믿는 게 있어요?" 그 질문에 새하는 바로 답하지 못했다.',
+      },
+      {
+        text: '오래된 자에게 맡긴다',
+        apply: s => {
+          s.res.hanto += 2;
+          s.flags.elderRel = (s.flags.elderRel || 60) + 3;
+          addLog('오래된 자가 이탈자를 만났다.');
+        },
+        result: '오래된 자가 그를 만나고 왔다. "있어요. 그냥 오늘은 못 보인 거예요."',
+      },
+    ],
+  },
+  {
+    id: 'hanto_eum_conflict', weight: 4,
+    condition: s => s.res.hanto > 45 && s.flags.eumRel >= 40,
+    type: 'crisis', title: '항도와 이음단의 갈등',
+    body: `항도 신자들이 승계실 안에서 의례를 하고 싶다고 요청했다.
+
+이음이 거부했다.
+
+"시술은 정확해야 합니다. 감정이 개입되면 집중이 흐려져요."
+
+오래된 자: "기억을 잇는 것에 마음이 없으면 기술만 남아요."
+
+양쪽이 새하에게 결정을 요청했다.`,
+    choices: [
+      {
+        text: '항도 의례를 허용한다',
+        apply: s => {
+          s.res.hanto += 8;
+          s.flags.eumRel = Math.max(0, (s.flags.eumRel || 40) - 8);
+          addLog('항도 의례 허용. 이음단 불만.');
+        },
+        result: '"다음엔 묻지 않겠습니다." 이음의 말이 위협처럼 들렸다. 아마 위협이 맞았다.',
+      },
+      {
+        text: '이음단의 방침을 지지한다',
+        apply: s => {
+          s.flags.eumRel = (s.flags.eumRel || 40) + 5;
+          s.res.hanto -= 5;
+          addLog('이음단 지지. 항도 지지율 하락.');
+        },
+        result: '오래된 자가 말했다. "둘 다 맞아요. 그래서 어려운 거예요."',
+      },
+      {
+        text: '타협안: 시술 전후 짧은 의례만 허용',
+        apply: s => {
+          s.res.hanto += 3;
+          s.flags.eumRel = (s.flags.eumRel || 40) + 3;
+          addLog('항도-이음단 타협. 양측 수용.');
+        },
+        result: '아무도 완전히 만족하지 않았다. 그래서 타협이었다.',
+      },
+    ],
+  },
+  {
+    id: 'jinseo_meeting', weight: 4,
+    condition: s => s.turn > 18 && !s.flags.jinseoMetDone,
+    type: 'threat', title: '진서의 면담 요청',
+    body: `기득권 수석 위원 진서가 직접 면담을 요청했다.
+
+이례적인 일이었다.
+
+도율이 말했다. "조심해요. 그 사람이 먼저 움직일 때는 이유가 있어요."`,
+    choices: [
+      {
+        text: '단독으로 수락한다',
+        apply: s => {
+          s.flags.eliteRel -= 5;
+          s.flags.jinseoMetDone = true;
+          addLog('진서 단독 면담. 정보 획득.');
+        },
+        result: '"생각보다 오래 버텼어요." 진서가 말했다. 칭찬인지 경고인지 알 수 없었다.',
+      },
+      {
+        text: '하온을 동반한다',
+        apply: s => {
+          s.flags.haonRel = (s.flags.haonRel || 35) + 5;
+          s.flags.jinseoMetDone = true;
+          addLog('하온 동반 면담. 하온-진서 구면 확인.');
+        },
+        result: '하온과 진서가 눈빛을 교환했다. 아는 사이였다. 새하는 그것을 기억해뒀다.',
+      },
+      {
+        text: '거절한다',
+        apply: s => {
+          s.flags.eliteRel += 10;
+          s.flags.jinseoMetDone = true;
+          s.res.food -= 10;
+          addLog('진서 면담 거절. 기득권 압박 증가.');
+        },
+        result: '다음 달 식량 공급이 줄었다. 우연이라고 하기엔 타이밍이 정확했다.',
+      },
+    ],
+  },
+  {
+    id: 'moo_kyung_warning', weight: 4,
+    condition: s => s.flags.seonuConflictDone && !s.flags.mooKyungWarned,
+    type: 'opportunity', title: '무경의 비공식 경고',
+    body: `비공식 경로로 메시지가 왔다.
+
+보안국장 무경.
+
+"강무를 조심하세요. 개인적인 말입니다."
+
+새하는 그 메시지를 오래 바라봤다.`,
+    choices: [
+      {
+        text: '무경을 직접 만난다',
+        apply: s => {
+          s.flags.eliteRel += 3;
+          s.flags.mooKyungWarned = true;
+          addLog('무경 직접 면담.');
+        },
+        result: '"저는 당신의 적이 아닙니다." 무경이 말했다. "하지만 우리 편도 아닌 건 사실이에요." 그것이 이상하게 솔직하게 들렸다.',
+      },
+      {
+        text: '강무를 더 주시한다',
+        apply: s => {
+          s.flags.kangmuRel = Math.max(0, (s.flags.kangmuRel || 40) - 3);
+          s.flags.mooKyungWarned = true;
+          addLog('강무 감시 강화.');
+        },
+        result: '강무는 계속 움직였다. 조용하게.',
+      },
+      {
+        text: '무시한다',
+        apply: s => {
+          s.flags.mooKyungWarned = true;
+          s.flags.kangmuDangerous = true;
+          addLog('무경 경고 무시.');
+        },
+        result: '이틀 후 강무가 중립 구역 대표와 비공식 접촉했다는 보고가 들어왔다.',
+      },
+    ],
+  },
+  {
+    id: 'soy_info', weight: 3,
+    condition: s => s.turn > 30 && !s.flags.soyInfoDone,
+    type: 'opportunity', title: '소이의 정보 거래 제안',
+    body: `익명 메시지.
+
+"기득권 내부 정보와 교환할 것이 있습니다."
+
+하온이 말했다. "소이예요. 아마도."`,
+    choices: [
+      {
+        text: '수락한다',
+        apply: s => {
+          s.flags.soyInfoDone = true;
+          s.flags.soyTrustBuilt = true;
+          addLog('소이 정보 거래 수락. 예상치 못한 결과.');
+        },
+        result: '소이가 원한 건 정보 거래가 아니었다. 새하를 직접 보고 싶었던 것이다. 정보는 그냥 줬다.',
+      },
+      {
+        text: '하온을 통해 탐색한다',
+        apply: s => {
+          s.flags.haonRel = (s.flags.haonRel || 35) + 5;
+          s.flags.soyInfoDone = true;
+          addLog('하온 경로로 소이 탐색.');
+        },
+        result: '하온이 말했다. "소이는 진서 편이 아닌 것 같아요. 혼자 움직이고 있어요."',
+      },
+    ],
+  },
+  {
+    id: 'old_one_last_broadcast', weight: 3,
+    condition: s => s.flags.elderLastDone && !s.flags.elderBroadcastDone && s.turn > 45,
+    type: 'story', title: '오래된 자의 마지막 강연',
+    body: `오래된 자가 전체 방송 요청을 보내왔다.
+
+도율이 말했다. "내용을 모르겠어요. 그냥 방송을 틀어달라고 해요."
+
+새하는 잠깐 생각했다.`,
+    choices: [
+      {
+        text: '방송을 허용한다',
+        apply: s => {
+          s.res.hanto += 10;
+          s.flags.elderBroadcastDone = true;
+          s.flags.elderLastBroadcast = true;
+          addLog('오래된 자 마지막 방송 허용.');
+        },
+        result: '아크 제로 전체에 목소리가 울렸다. "이 항해는 끝나지 않을 것입니다. 우리가 그린에 닿더라도. 항해는 계속됩니다. 다만 배가 달라질 뿐이에요."',
+      },
+      {
+        text: '내용을 먼저 확인한다',
+        apply: s => {
+          s.flags.elderRel = Math.max(0, (s.flags.elderRel || 60) - 5);
+          s.flags.elderBroadcastDone = true;
+          addLog('오래된 자 방송 내용 검열 요청. 관계 냉각.');
+        },
+        result: '오래된 자가 잠깐 침묵했다. "확인하셔도 돼요." 그 침묵이 더 무거웠다.',
+      },
+    ],
+  },
 ];
 
 // ─── 렌더링 ─────────────────────────────────────────
@@ -1593,6 +2160,36 @@ function renderStatus() {
 
   const eliteLabel = S.flags.eliteRel < 30 ? '적대적' : S.flags.eliteRel < 60 ? '중립' : '협력적';
 
+  // 인물 관계 요약
+  const charRows = [];
+  if (S.flags.doyulRel !== undefined) {
+    const label = S.flags.doyulRel >= 65 ? '신뢰' : S.flags.doyulRel >= 40 ? '협력' : '냉랭';
+    charRows.push(`도율 ${label}`);
+  }
+  if (S.flags.seonuRel !== undefined) {
+    const label = S.flags.seonuRel >= 50 ? '동맹' : S.flags.seonuRel >= 30 ? '중립' : '갈등';
+    charRows.push(`선우 ${label}`);
+  }
+  if (S.flags.eumRel !== undefined) {
+    const label = S.flags.eumRel >= 55 ? '신뢰' : S.flags.eumRel >= 35 ? '협력' : '냉랭';
+    charRows.push(`이음 ${label}`);
+  }
+  if (S.flags.haonRel !== undefined) {
+    const label = S.flags.haonRel >= 50 ? '신뢰' : S.flags.haonRel >= 30 ? '협력' : '냉랭';
+    charRows.push(`하온 ${label}`);
+  }
+  if (S.flags.byeolRel !== undefined) {
+    const label = S.flags.byeolRel >= 40 ? '신뢰' : S.flags.byeolRel >= 20 ? '중립' : '소원';
+    charRows.push(`별 ${label}`);
+  }
+  if (S.flags.elderRel !== undefined) {
+    const label = S.flags.elderRel >= 65 ? '신뢰' : S.flags.elderRel >= 40 ? '협력' : '냉랭';
+    charRows.push(`오래된 자 ${label}`);
+  }
+  const charHtml = charRows.length
+    ? `<div class="char-rel-section"><div class="char-rel-title">인물 관계</div><div class="char-rel-grid">${charRows.map(r => `<span class="char-rel-item">${r}</span>`).join('')}</div></div>`
+    : '';
+
   el('status-box').innerHTML = `
     <div class="sum-grid">
       <div class="sum-item ${d.food >= 0 ? 'pos' : 'neg'}">
@@ -1616,7 +2213,8 @@ function renderStatus() {
         <span class="sum-val">${eliteLabel}</span>
       </div>
     </div>
-    ${warns.length ? `<div class="warn-list">${warns.map(w => `<div class="warn-item">${w}</div>`).join('')}</div>` : ''}`;
+    ${warns.length ? `<div class="warn-list">${warns.map(w => `<div class="warn-item">${w}</div>`).join('')}</div>` : ''}
+    ${charHtml}`;
 }
 
 function renderActions() {
