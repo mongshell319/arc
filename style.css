@@ -1,20 +1,20 @@
 /* ─── 기본 변수 ─── */
 :root {
-  --bg: #06091a;
-  --bg-card: #0c1227;
-  --bg-card-hover: #121830;
-  --border: #1c2b47;
-  --border-hi: #2a4070;
-  --text: #e2d9c8;
-  --text-dim: #7a8ba0;
-  --text-mute: #3a4a5e;
-  --gold: #d4962a;
-  --gold-hi: #f0b040;
-  --blue: #4a90d9;
-  --green: #4a9e72;
-  --red: #c84a4a;
-  --purple: #7a5fbe;
-  --amber: #e8a23a;
+  --bg: #0e1530;
+  --bg-card: #162040;
+  --bg-card-hover: #1e2d54;
+  --border: #2e4470;
+  --border-hi: #4060a0;
+  --text: #f0ebe0;
+  --text-dim: #a8bccc;
+  --text-mute: #6a80a0;
+  --gold: #e8a830;
+  --gold-hi: #ffcc55;
+  --blue: #60a8f0;
+  --green: #5abe88;
+  --red: #e05a5a;
+  --purple: #9878d8;
+  --amber: #f0b84a;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -37,7 +37,7 @@ body {
 
 /* ─── 인트로 화면 ─── */
 #intro-screen {
-  background: radial-gradient(ellipse at 50% 40%, #0d1f40 0%, #030508 100%);
+  background: radial-gradient(ellipse at 50% 40%, #152848 0%, #080e20 100%);
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
 }
@@ -446,7 +446,7 @@ body {
 
 /* ─── 게임오버 화면 ─── */
 #end-screen {
-  background: radial-gradient(ellipse at center, #0a1535 0%, #030508 100%);
+  background: radial-gradient(ellipse at center, #122040 0%, #080e20 100%);
   display: flex; align-items: center; justify-content: center;
 }
 
