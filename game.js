@@ -341,6 +341,20 @@ function nextTurn() {
   S.res.morale = Math.max(0, Math.min(100, S.res.morale + d.morale));
   S.res.hanto  = Math.max(0, Math.min(100, S.res.hanto  + d.hanto));
 
+  // 3D: 구역 빛 상태 갱신
+  if (window.threeScene) {
+    const ts = window.threeScene;
+    const playerZones = S.zones.filter(z => z.owner === 'player');
+    playerZones.forEach(z => {
+      const state = z.cond < 35 ? 'offline'
+                  : (S.res.food < C.FOOD_CRISIS || S.res.energy < C.ENERGY_CRISIS) ? 'crisis'
+                  : 'normal';
+      ts.setZoneLight(z.id, state);
+    });
+    // 식량/에너지 위기 시 카메라 쉐이크
+    if (S.res.food < C.FOOD_CRISIS || S.res.energy < C.ENERGY_CRISIS) ts.shake(0.2);
+  }
+
   // 에너지 패널티 감소
   if (S.flags.energyPenalty > 0) S.flags.energyPenalty = Math.max(0, S.flags.energyPenalty - 3);
 
@@ -516,10 +530,17 @@ function doSuccession() {
   S.stats.sucOk   += ok;
   S.stats.sucFail += fail;
 
+  // 3D: 승계 구역(42, 39) 파란빛
+  if (window.threeScene) {
+    window.threeScene.setZoneLight(39, 'succession');
+    setTimeout(() => window.threeScene && window.threeScene.setZoneLight(39, 'normal'), 3000);
+  }
+
   if (fail > 0) {
     S.res.morale -= fail * 3;
     addLog(`승계 시행: ${ok}명 성공, ${fail}명 기억 일부 손실.`);
     notify(`${ok}명 이어짐. ${fail}명의 직전 기억이 흐려졌습니다.`, 'warning');
+    if (window.threeScene) window.threeScene.shake(0.3);
   } else {
     S.res.morale += 2;
     addLog(`승계 시행: ${ok}명 성공. 항해가 이어집니다.`);
@@ -540,6 +561,10 @@ function repairZone(zoneId) {
     ((z.fac || []).includes('workshop') ? 15 * 0.05 : 0);
   z.cond = Math.min(100, z.cond + 15 + Math.round(repairExtra));
   addLog(`${z.name} 수리 완료. 상태 ${Math.round(z.cond)}%.`);
+  if (window.threeScene) {
+    window.threeScene.setZoneLight(z.id, 'highlight');
+    setTimeout(() => window.threeScene && window.threeScene.setZoneLight(z.id, 'normal'), 1500);
+  }
   render();
 }
 
@@ -558,6 +583,10 @@ function expandZone(zoneId) {
     updateZoneCounts();
     addLog(`${z.name} 병합 성공. 자치 구역 확장.`);
     notify(`${z.name}이 자치 구역에 합류했습니다.`, 'success');
+    if (window.threeScene) {
+      window.threeScene.setZoneLight(z.id, 'highlight');
+      setTimeout(() => window.threeScene && window.threeScene.setZoneLight(z.id, 'normal'), 2500);
+    }
   } else {
     S.res.food -= 20;
     addLog(`${z.name} 협상 실패. 식량 일부 소비.`);
@@ -626,6 +655,13 @@ function togglePolicy(policyId) {
 function showEvent(ev) {
   S.phase    = 'event';
   S.curEvent = ev;
+
+  // 3D: 이벤트 타입에 따른 카메라 연출
+  if (window.threeScene) {
+    if (ev.type === 'crisis' || ev.type === 'threat') window.threeScene.shake(0.4);
+    // 관련 구역이 있으면 카메라 포커스
+    if (ev.zoneId) window.threeScene.focusZone(ev.zoneId);
+  }
 
   const TYPE_LABELS = {
     story:       '[ 이야기 ]',

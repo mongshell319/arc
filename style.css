@@ -1,20 +1,40 @@
-/* ─── 기본 변수 ─── */
+/* ─── 기본 변수 (TECHNICAL.md 팔레트) ─── */
 :root {
-  --bg: #0e1530;
-  --bg-card: #162040;
-  --bg-card-hover: #1e2d54;
-  --border: #2e4470;
-  --border-hi: #4060a0;
-  --text: #f0ebe0;
-  --text-dim: #a8bccc;
-  --text-mute: #6a80a0;
-  --gold: #e8a830;
-  --gold-hi: #ffcc55;
-  --blue: #60a8f0;
-  --green: #5abe88;
-  --red: #e05a5a;
-  --purple: #9878d8;
-  --amber: #f0b84a;
+  /* 배경 */
+  --color-space:      #050a14;
+  --color-hull:       #1a2332;
+
+  /* 구역 빛 */
+  --color-normal:     #d4891a;
+  --color-crisis:     #c0392b;
+  --color-succession: #2980b9;
+  --color-engine:     #4fc3f7;
+
+  /* UI 오버레이 */
+  --ui-bg:            rgba(5, 10, 20, 0.88);
+  --ui-border:        #2e4057;
+  --ui-text:          #e8d5b7;
+  --ui-text-dim:      #8899aa;
+  --ui-accent:        #d4891a;
+  --ui-accent-danger: #c0392b;
+  --ui-accent-safe:   #27ae60;
+
+  /* 기존 변수 유지 (하위 호환) */
+  --bg:           #050a14;
+  --bg-card:      #0f1a2e;
+  --bg-card-hover:#162440;
+  --border:       #2e4057;
+  --border-hi:    #d4891a;
+  --text:         #e8d5b7;
+  --text-dim:     #8899aa;
+  --text-mute:    #4a5a6a;
+  --gold:         #d4891a;
+  --gold-hi:      #f0a830;
+  --blue:         #2980b9;
+  --green:        #27ae60;
+  --red:          #c0392b;
+  --purple:       #8e44ad;
+  --amber:        #d4891a;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
