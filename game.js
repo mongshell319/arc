@@ -10,8 +10,10 @@ const C = {
   START_POP:   2400,
   START_FOOD:  170,
   START_ENERGY: 71,
-  START_MORALE: 45,
+  START_MORALE: 55,
+  START_HANTO:  45,
   START_SUC_QUEUE: 38,
+  ELITE_REL_START: 20,
 
   FOOD_CRISIS:   40,
   ENERGY_CRISIS: 20,
@@ -30,7 +32,7 @@ const BUILDINGS = {
   powerplant:      { name: '발전소',     icon: '⚡', energyPerTurn:12, buildCost: { food: 10, energy: 0 },  desc: '에너지 +12/월', prodDesc: '+12에너지' },
   housing:         { name: '주거 구역',  icon: '🏠', moraleBonus: 2,  buildCost: { food: 15, energy: 20 }, desc: '사기 +2 (설치 즉시)', prodDesc: '+2사기' },
   workshop:        { name: '기술 작업장',icon: '🔧', repairBonus: 5,  energyDrain: 2, buildCost: { food: 10, energy: 25 }, desc: '수리 효율 +5%', prodDesc: '수리↑' },
-  cultural_center: { name: '문화 구역',  icon: '🎭', moralePerTurn: 3,buildCost: { food: 10, energy: 15 }, desc: '사기 +3/월', prodDesc: '+3사기/월' },
+  cultural_center: { name: '문화 구역',  icon: '🎭', moralePerTurn: 2, hantoPerTurn: 1, buildCost: { food: 10, energy: 15 }, desc: '사기 +2/월, 항도 +1/월', prodDesc: '+2사기/월' },
   succession_lab:  { name: '승계 실험실',icon: '🔬', sucBonus: 15,    energyDrain: 3, buildCost: { food: 20, energy: 40 }, desc: '승계 성공률 +15%', prodDesc: '승계↑', unlock: 'sucLabUnlocked' },
 };
 
@@ -38,7 +40,7 @@ const BUILDINGS = {
 const POLICIES = {
   foodRation:  { name: '배급 통제',   icon: '🌾', desc: '식량 소비 -1/월, 사기 -1/월',    deltaFood: 1,  deltaMorale: -1 },
   energySave:  { name: '에너지 절약', icon: '⚡', desc: '에너지 +3/월, 사기 -1/월',       deltaEnergy: 3, deltaMorale: -1 },
-  openCulture: { name: '문화 개방',   icon: '🎭', desc: '사기 +3/월, 에너지 -2/월',       deltaMorale: 3, deltaEnergy: -2 },
+  openCulture: { name: '문화 개방',   icon: '🎭', desc: '항도 +3/월, 에너지 -2/월',       deltaHanto: 3, deltaEnergy: -2 },
   sucFocus:    { name: '승계 우선',   icon: '🔬', desc: '승계 성공률 +15%',               sucBonus: 0.15 },
   expansion:   { name: '확장 집중',   icon: '📡', desc: '병합 성공률 +15%',              expandBonus: 0.15 },
 };
@@ -58,10 +60,11 @@ function newGame() {
       energy: C.START_ENERGY,
       pop:    C.START_POP,
       morale: C.START_MORALE,
+      hanto:  C.START_HANTO,
     },
     zones: buildZones(),
     sucQueue: C.START_SUC_QUEUE,
-    flags: { storyStage: 0 },
+    flags: { storyStage: 0, eliteRel: C.ELITE_REL_START },
     policies: { foodRation: false, energySave: false, openCulture: false, sucFocus: false, expansion: false },
     systems: { sucBasic: true, hanto: false, zoneMerge: false, sucAdvanced: false, eliteRelations: false },
     log: [],
@@ -76,37 +79,64 @@ function newGame() {
 
 // ─── 구역 데이터 ────────────────────────────────────
 function buildZones() {
+  // 자치 구역 5개 — 엔진부 (설계 문서 기준)
   const player = [
-    { id:3,  name:'3구역',  type:'food',    owner:'player',  cond:62, fac:['farm'],                     pop:520, desc:'주요 식량 구역. 설비 노후화로 수율 저하.', special:'hidden_farm' },
-    { id:7,  name:'7구역',  type:'power',   owner:'player',  cond:71, fac:['powerplant'],               pop:480, desc:'전력 공급 구역. 핵심 설비 노후화 중.' },
-    { id:11, name:'11구역', type:'tech',    owner:'player',  cond:95, fac:['workshop'],                 pop:460, desc:'기술 구역. 새하의 본거지. 설계도 보관.', special:'design_docs' },
-    { id:15, name:'15구역', type:'housing', owner:'player',  cond:78, fac:['housing','housing'],        pop:620, desc:'주거 구역. 인구 과밀 상태.' },
-    { id:19, name:'19구역', type:'culture', owner:'player',  cond:55, fac:['cultural_center'],          pop:320, desc:'문화 구역. 전력 부족으로 부분 가동. 항도 거점.', special:'elder_base' },
-  ].map(z => ({ ...z, slots: TYPE_SLOTS[z.type] || 3 }));
-  const neutral = [
-    { id:2,  name:'2구역',  type:'food',    owner:'neutral', cond:70, fac:[], pop:200, desc:'중립 식량 구역.' },
-    { id:5,  name:'5구역',  type:'power',   owner:'neutral', cond:65, fac:[], pop:150, desc:'중립 발전 구역.' },
-    { id:8,  name:'8구역',  type:'housing', owner:'neutral', cond:80, fac:[], pop:350, desc:'중립 주거 구역.' },
-    { id:12, name:'12구역', type:'tech',    owner:'neutral', cond:75, fac:[], pop:180, desc:'중립 기술 구역. 기득권 압박 받는 중.' },
-    { id:16, name:'16구역', type:'food',    owner:'neutral', cond:85, fac:[], pop:280, desc:'중립 식량 구역. 자급자족 상태.' },
-    { id:20, name:'20구역', type:'culture', owner:'neutral', cond:60, fac:[], pop:120, desc:'중립 문화 구역. 항도 신자가 많음.' },
-    { id:23, name:'23구역', type:'housing', owner:'neutral', cond:72, fac:[], pop:400, desc:'중립 주거 구역. 식량 부족 문제 있음.' },
-    { id:27, name:'27구역', type:'food',    owner:'neutral', cond:68, fac:[], pop:190, desc:'중립 식량 구역.' },
-    { id:31, name:'31구역', type:'power',   owner:'neutral', cond:58, fac:[], pop:140, desc:'중립 발전 구역. 설비 불안정.' },
-    { id:35, name:'35구역', type:'tech',    owner:'neutral', cond:82, fac:[], pop:210, desc:'중립 기술 구역.' },
-    { id:39, name:'39구역', type:'housing', owner:'neutral', cond:77, fac:[], pop:380, desc:'중립 주거 구역.' },
-    { id:43, name:'43구역', type:'food',    owner:'neutral', cond:73, fac:[], pop:160, desc:'중립 식량 구역.' },
+    { id:37, name:'37구역', type:'power',   owner:'player', cond:71, fac:['powerplant'],          pop:480, desc:'발전 구역. 출력 71%, 에너지 여유 없음.' },
+    { id:39, name:'39구역', type:'tech',    owner:'player', cond:95, fac:['workshop'],             pop:460, desc:'기술 구역. 새하의 본거지. 설계도 보관.', special:'design_docs' },
+    { id:40, name:'40구역', type:'housing', owner:'player', cond:78, fac:['housing','housing'],    pop:620, desc:'주거 구역. 인구 과밀 상태.' },
+    { id:41, name:'41구역', type:'food',    owner:'player', cond:62, fac:['farm'],                 pop:520, desc:'식량 구역. 수율 62%, 설비 노후화.', special:'hidden_farm' },
+    { id:44, name:'44구역', type:'culture', owner:'player', cond:55, fac:['cultural_center'],      pop:320, desc:'문화 구역. 부분 가동. 항도 거점.', special:'elder_base' },
   ].map(z => ({ ...z, slots: TYPE_SLOTS[z.type] || 3 }));
 
-  const enemyIds = [1,4,6,9,10,13,14,17,18,21,22,24,25,26,28,29,30,32,33,34,36,37,38,40,41,42,44,45,46,47];
-  const types = ['food','power','housing','tech','culture'];
-  const enemy = enemyIds.map(id => ({
-    id, name:`${id}구역`, type: types[id % 5],
-    owner: 'enemy', cond: 55 + (id % 35),
-    fac: [], pop: 180 + (id * 17) % 400,
-    slots: TYPE_SLOTS[types[id % 5]] || 3,
-    desc: '기득권 통제 구역.',
-  }));
+  // 중립 구역 21개
+  const neutral = [
+    { id: 9, name: '9구역',  type:'housing', cond:82, pop:280, desc:'의료 본원. 중립 지역.' },
+    { id:12, name:'12구역', type:'housing', cond:75, pop:200, desc:'일반 행정 창구. 기득권 행정에 지쳐있음.' },
+    { id:13, name:'13구역', type:'housing', cond:70, pop:380, desc:'함수부 외층 주거.' },
+    { id:14, name:'14구역', type:'housing', cond:65, pop:350, desc:'함수부 외층 주거. 식량 배급 불균등.' },
+    { id:15, name:'15구역', type:'food',    cond:80, pop:120, desc:'창고 구역. 자급자족 유지 중.' },
+    { id:16, name:'16구역', type:'housing', cond:72, pop:190, desc:'의료 분원. 기득권 지원 끊긴 상태.' },
+    { id:24, name:'24구역', type:'housing', cond:78, pop:420, desc:'중간부 중층 주거. 식량 부족 문제 있음.' },
+    { id:25, name:'25구역', type:'housing', cond:74, pop:390, desc:'중간부 중층 주거. 항도 신자가 많음.' },
+    { id:26, name:'26구역', type:'culture', cond:60, pop:150, desc:'문화 광장. 반란 이후 집회 금지됨.' },
+    { id:27, name:'27구역', type:'tech',    cond:68, pop:180, desc:'교육 시설. 자원 부족으로 일부 폐쇄.' },
+    { id:28, name:'28구역', type:'housing', cond:73, pop:210, desc:'의료 분원. 약품 부족.' },
+    { id:29, name:'29구역', type:'culture', cond:65, pop:130, desc:'항도 본원. 오래된 자의 핵심 거점.' },
+    { id:30, name:'30구역', type:'tech',    cond:55, pop:90,  desc:'소형 승계실 A. 자원 부족으로 대기 길어짐.' },
+    { id:31, name:'31구역', type:'food',    cond:58, pop:140, desc:'창고. 설비 불안정.' },
+    { id:32, name:'32구역', type:'housing', cond:77, pop:360, desc:'외곽 주거. 승계 거부자 일부 거주.' },
+    { id:33, name:'33구역', type:'tech',    cond:82, pop:160, desc:'소규모 공방. 자치 구역과 비공식 교류 있음.' },
+    { id:42, name:'42구역', type:'tech',    cond:60, pop:85,  desc:'소형 승계실 B. 이음단 운영.' },
+    { id:43, name:'43구역', type:'housing', cond:75, pop:230, desc:'의료실. 자치 구역 인근.' },
+    { id:45, name:'45구역', type:'housing', cond:70, pop:300, desc:'엔진부 외층 주거. 자치 구역 인접.' },
+    { id:46, name:'46구역', type:'power',   cond:50, pop:80,  desc:'폐기물 처리. 설비 노후 심각.' },
+    { id:47, name:'47구역', type:'tech',    cond:85, pop:60,  desc:'관측 구역. 케플러 그린 탐사 데이터 보관.', special:'observatory' },
+  ].map(z => ({ ...z, fac:[], slots: TYPE_SLOTS[z.type] || 3, owner:'neutral' }));
+
+  // 기득권 구역 21개 — 함수부·중간부 심층 중심
+  const enemy = [
+    { id: 1, name: '1구역',  type:'tech',    cond:90, pop:50,  desc:'항법 중추. 접근 엄격 통제.' },
+    { id: 2, name: '2구역',  type:'housing', cond:88, pop:120, desc:'운영위원회 청사. 반란 이후 보안 강화.' },
+    { id: 3, name: '3구역',  type:'tech',    cond:85, pop:80,  desc:'중앙 승계실. 기득권 우선 배정.' },
+    { id: 4, name: '4구역',  type:'housing', cond:82, pop:150, desc:'보안 사령부. 무경이 관할.' },
+    { id: 5, name: '5구역',  type:'tech',    cond:80, pop:60,  desc:'기록 보존실. 아크 제로의 역사 보관.' },
+    { id: 6, name: '6구역',  type:'tech',    cond:70, pop:0,   desc:'봉인 구역. 공식 문서에 없다.', special:'sealed' },
+    { id: 7, name: '7구역',  type:'housing', cond:78, pop:200, desc:'행정 지원. 기득권 하부 조직.' },
+    { id: 8, name: '8구역',  type:'tech',    cond:83, pop:70,  desc:'통신 중계실. 소이가 관리.' },
+    { id:10, name:'10구역', type:'tech',    cond:88, pop:100, desc:'이음단 본원. 승계사 집단 거점.' },
+    { id:11, name:'11구역', type:'housing', cond:92, pop:80,  desc:'귀빈 주거. 기득권 고위직 거주.' },
+    { id:17, name:'17구역', type:'power',   cond:85, pop:120, desc:'중앙 발전소. 아크 제로 전력의 60% 공급.' },
+    { id:18, name:'18구역', type:'power',   cond:80, pop:90,  desc:'에너지 분배 제어실. 태린이 통제.' },
+    { id:19, name:'19구역', type:'food',    cond:75, pop:110, desc:'중앙 식량 저장고. 반란의 불씨가 된 곳.' },
+    { id:20, name:'20구역', type:'power',   cond:82, pop:70,  desc:'수처리 시설. 전체 음수 공급.' },
+    { id:21, name:'21구역', type:'food',    cond:78, pop:130, desc:'중앙 물류 허브. 자원 분배 통제.' },
+    { id:22, name:'22구역', type:'food',    cond:80, pop:200, desc:'제1 농장. 기득권 직할 관리.' },
+    { id:23, name:'23구역', type:'food',    cond:77, pop:195, desc:'제2 농장. 반란 이후 생산량 감소.' },
+    { id:34, name:'34구역', type:'power',   cond:88, pop:150, desc:'주 엔진실. 아크 제로 항법 핵심.' },
+    { id:35, name:'35구역', type:'power',   cond:82, pop:120, desc:'보조 엔진실. 자치 구역과 인접.' },
+    { id:36, name:'36구역', type:'tech',    cond:85, pop:100, desc:'기술 연구소. 기득권 핵심 인재.' },
+    { id:38, name:'38구역', type:'tech',    cond:79, pop:80,  desc:'핵심 부품 창고. 접근 통제.' },
+  ].map(z => ({ ...z, fac:[], slots: TYPE_SLOTS[z.type] || 3, owner:'enemy' }));
 
   return [...player, ...neutral, ...enemy];
 }
@@ -131,28 +161,34 @@ function calcDelta() {
   const energyPenalty = S.flags.energyPenalty || 0;
 
   let moraleDelta = 0;
+  let hantoDelta  = 0;
   const culturalCount = myZones.flatMap(z => z.fac).filter(f => f === 'cultural_center').length;
-  moraleDelta += culturalCount * 1;
-  if (S.res.food   < C.FOOD_CRISIS)   moraleDelta -= 2;
-  else if (S.res.food > 120)           moraleDelta += 1;
-  if (S.res.energy < C.ENERGY_CRISIS) moraleDelta -= 2;
+  moraleDelta += culturalCount * 2;
+  hantoDelta  += culturalCount * 1;
+  if (S.res.food   < C.FOOD_CRISIS)   { moraleDelta -= 2; hantoDelta -= 1; }
+  else if (S.res.food > 120)            moraleDelta += 1;
+  if (S.res.energy < C.ENERGY_CRISIS) { moraleDelta -= 2; hantoDelta -= 1; }
   if (S.res.morale > 70) moraleDelta -= 1;
   if (S.res.morale < 30) moraleDelta += 1;
+  if (S.res.hanto  > 70) hantoDelta  -= 1;
+  if (S.res.hanto  < 25) hantoDelta  += 1;
 
   // 정책 효과 적용
-  let pFoodDelta = 0, pEnergyDelta = 0, pMoraleDelta = 0;
+  let pFoodDelta = 0, pEnergyDelta = 0, pMoraleDelta = 0, pHantoDelta = 0;
   Object.entries(S.policies).forEach(([pid, on]) => {
     if (!on) return;
     const p = POLICIES[pid];
     if (p.deltaFood)   pFoodDelta   += p.deltaFood;
     if (p.deltaEnergy) pEnergyDelta += p.deltaEnergy;
     if (p.deltaMorale) pMoraleDelta += p.deltaMorale;
+    if (p.deltaHanto)  pHantoDelta  += p.deltaHanto;
   });
 
   return {
     food:   Math.floor(foodProd) - foodCon + pFoodDelta,
     energy: Math.floor(energyProd) - energyDrain - energyPenalty + pEnergyDelta,
     morale: moraleDelta + pMoraleDelta,
+    hanto:  hantoDelta  + pHantoDelta,
   };
 }
 
@@ -167,6 +203,7 @@ function nextTurn() {
   S.res.food   = Math.max(0, S.res.food   + d.food);
   S.res.energy = Math.max(0, Math.min(100, S.res.energy + d.energy));
   S.res.morale = Math.max(0, Math.min(100, S.res.morale + d.morale));
+  S.res.hanto  = Math.max(0, Math.min(100, S.res.hanto  + d.hanto));
 
   // 에너지 패널티 감소
   if (S.flags.energyPenalty > 0) S.flags.energyPenalty = Math.max(0, S.flags.energyPenalty - 3);
@@ -236,8 +273,13 @@ function checkGameOver() {
   if (S.res.energy <= 0)         return { type:'lose', title:'블랙아웃',      msg:'우주선의 불이 꺼졌다. 어둠 속에서, 모든 것이 멈췄다.' };
 
   const owned = S.zones.filter(z => z.owner === 'player').length;
-  if (owned >= C.WIN_ZONES) return { type:'win', title:'아크 제로를 되찾다', msg:`새하의 자치 구역이 아크 제로의 절반 이상을 포괄하게 됐다.\n\n기득권은 협상 테이블로 돌아왔다.\n우주선은 계속 날아간다.\n\n케플러 그린이 가까워지고 있다.` };
-  if (S.turn >= C.WIN_TURNS) return { type:'win', title:'항해는 계속된다',   msg:`${C.WIN_TURNS}달. 새하는 버텼다.\n\n자치 구역은 살아있다. 아크 제로는 오늘도 날아가고 있다.\n\n케플러 그린이 조금 더 가까워졌다.` };
+  const sucSuffix = S.flags.saehaSuccession === 'will'
+    ? '\n\n새하는 그 날을 볼 것이다.'
+    : S.flags.saehaSuccession === 'refuse'
+    ? '\n\n새하는 그 날을 보지 못할 수도 있다. 하지만 사람들은 볼 것이다.'
+    : '';
+  if (owned >= C.WIN_ZONES) return { type:'win', title:'아크 제로를 되찾다', msg:`새하의 자치 구역이 아크 제로의 절반 이상을 포괄하게 됐다.\n\n기득권은 협상 테이블로 돌아왔다.\n우주선은 계속 날아간다.\n\n케플러 그린이 가까워지고 있다.${sucSuffix}` };
+  if (S.turn >= C.WIN_TURNS) return { type:'win', title:'항해는 계속된다',   msg:`${C.WIN_TURNS}달. 새하는 버텼다.\n\n자치 구역은 살아있다. 아크 제로는 오늘도 날아가고 있다.\n\n케플러 그린이 조금 더 가까워졌다.${sucSuffix}` };
 
   return null;
 }
@@ -457,11 +499,11 @@ const STORY_EVENTS = [
       {
         text: '즉시 보조 슬롯을 가동한다',
         apply(s) {
-          const z = s.zones.find(z => z.id === 3);
+          const z = s.zones.find(z => z.id === 41);
           if (z) { z.cond = 82; }
           s.res.food += 30;
           s.flags.hiddenFarm = true;
-          addLog('3구역 보조 경작 슬롯 가동. 식량 생산량 상승.');
+          addLog('41구역 보조 경작 슬롯 가동. 식량 생산량 상승.');
         },
         result: '식량 구역 수율이 82%로 회복됐다. 설계도를 아는 사람만이 찾을 수 있는 해답이었다.',
       },
@@ -555,7 +597,7 @@ const STORY_EVENTS = [
     trigger: s => s.turn === 8 && !s.flags.neutral1Done,
     type: 'story',
     title: '중립 구역의 접촉',
-    body: `23구역에서 연락이 왔다. 식량이 부족하다. 기득권에도, 자치 구역에도 속하지 않은 400명.
+    body: `24구역에서 연락이 왔다. 식량이 부족하다. 기득권에도, 자치 구역에도 속하지 않은 420명.
 
 그들의 대표가 직접 찾아왔다. 젊은 여성이었다. 승계를 한 번도 하지 않은, 새하와 비슷한 나이.
 
@@ -567,20 +609,20 @@ const STORY_EVENTS = [
         apply(s) {
           s.flags.neutral1Done = true;
           s.res.food -= 40;
-          const z = s.zones.find(z => z.id === 23);
+          const z = s.zones.find(z => z.id === 24);
           if (z) { z.owner = 'player'; z.fac = ['housing']; }
           s.stats.expanded++;
           updateZoneCounts();
-          addLog('23구역 병합. 400명이 자치 구역에 합류했다.');
+          addLog('24구역 병합. 420명이 자치 구역에 합류했다.');
         },
-        result: '식량을 보내자 23구역 사람들이 움직이기 시작했다. 조용히, 그러나 확실하게.',
+        result: '식량을 보내자 24구역 사람들이 움직이기 시작했다. 조용히, 그러나 확실하게.',
       },
       {
         text: '자원 교환을 협상한다',
         apply(s) {
           s.flags.neutral1Done = true;
-          s.flags.zone23negotiating = true;
-          addLog('23구역과 협상 중. 다음 달 결과 확인 예정.');
+          s.flags.zone24negotiating = true;
+          addLog('24구역과 협상 중. 다음 달 결과 확인 예정.');
         },
         result: '협상은 길어졌다. 그러나 대화의 문이 열렸다.',
       },
@@ -588,9 +630,9 @@ const STORY_EVENTS = [
         text: '지금 당장은 어렵다고 솔직하게 말한다',
         apply(s) {
           s.flags.neutral1Done = true;
-          const z = s.zones.find(z => z.id === 23);
-          if (z && Math.random() > 0.5) { z.owner = 'enemy'; addLog('23구역이 기득권으로 넘어갔다.'); updateZoneCounts(); }
-          else addLog('23구역이 아직 중립을 유지하고 있다.');
+          const z = s.zones.find(z => z.id === 24);
+          if (z && Math.random() > 0.5) { z.owner = 'enemy'; addLog('24구역이 기득권으로 넘어갔다.'); updateZoneCounts(); }
+          else addLog('24구역이 아직 중립을 유지하고 있다.');
         },
         result: '대표가 조용히 일어났다. "알겠습니다." 그것이 전부였다.',
       },
@@ -676,13 +718,83 @@ const STORY_EVENTS = [
     ],
   },
   {
+    id: 'table',
+    trigger: s => s.turn === 10 && !s.flags.tableDone,
+    type: 'story',
+    title: '테이블',
+    body: `기득권 측에서 면담 요청이 들어왔다.
+
+운영위원회 청사. 진서, 태린, 무경이 앉아 있었다.
+
+진서가 먼저 말했다. "자치 구역 운영 현황을 공유해 주세요."
+
+새하는 준비한 데이터를 꺼내지 않았다. 도율이 귀띔해 줬다. 그들이 원하는 건 데이터가 아니라 먼저 요청하게 만드는 것.
+
+침묵이 흘렀다.
+
+태린이 숫자가 빼곡한 패드를 밀었다. "자치 구역 식량 안정화 수치입니다."
+
+새하는 패드를 받지 않았다.`,
+    choices: [
+      {
+        text: '도율에게 협상을 배운다',
+        apply(s) { s.flags.tableDone = true; s.flags.learnedNeg = true; s.flags.eliteRel += 5; addLog('첫 기득권 면담. 도율로부터 협상의 언어를 배우기 시작함.'); },
+        result: '"말하지 않는 것도 협상이에요." 도율의 말이 그날 이후 머릿속에 남았다.',
+      },
+      {
+        text: '실무와 수치로 정면 승부한다',
+        apply(s) { s.flags.tableDone = true; s.flags.eliteRel -= 5; s.res.morale += 5; addLog('기득권 면담. 수치로 정면 대응. 기득권 관계 소폭 악화.'); },
+        result: '태린의 눈썹이 올라갔다. 진서는 미동도 없었다. 그것이 좋은 신호인지 나쁜 신호인지 알 수 없었다.',
+      },
+      {
+        text: '오래된 자에게 먼저 조언을 구한다',
+        apply(s) { s.flags.tableDone = true; s.res.hanto += 8; s.flags.eliteRel += 3; addLog('오래된 자 조언으로 기득권 면담 준비. 항도 지지율 상승.'); },
+        result: '"그들이 두려워하는 건 당신이 아니에요. 당신이 얼마나 오래 버틸지 모른다는 사실이에요." 그 말을 가지고 테이블에 앉았다.',
+      },
+    ],
+  },
+  {
+    id: 'suc_attitude',
+    trigger: s => s.turn === 16 && !s.flags.sucAttitudeDone,
+    type: 'story',
+    title: '승계에 대해서',
+    body: `도율이 업무 보고 중에 불쑥 물었다.
+
+"위원장님은 언제 승계하실 건가요?"
+
+새하는 보고서에서 눈을 들었다.
+
+반란 이전에는 생각해본 적 없는 질문이었다. 엔지니어 시절에는 때가 되면 하면 되는 일이었다.
+
+지금은 달랐다. 승계 대기자가 수십 명이다. 자원이 빠듯하다. 위원장인 새하가 승계를 받으면 그 자원을 다른 사람에게 쓸 수 있다.
+
+도율은 답을 강요하지 않았다. 그냥 물었다.`,
+    choices: [
+      {
+        text: '"언젠가는 해야겠죠. 아직은 아니지만."',
+        apply(s) { s.flags.sucAttitudeDone = true; s.flags.sucAttitude = 'sometime'; s.res.morale += 3; s.res.hanto += 3; addLog('승계 태도: 언젠가는. 주민 안심 효과.'); },
+        result: '도율이 고개를 끄덕였다. 그것으로 충분한 답이었다.',
+      },
+      {
+        text: '"아직은 아니에요."',
+        apply(s) { s.flags.sucAttitudeDone = true; s.flags.sucAttitude = 'not_yet'; addLog('승계 태도: 아직은 아니다.'); },
+        result: '도율은 더 이상 묻지 않았다. 그 침묵이 무겁게 남았다.',
+      },
+      {
+        text: '"모르겠어요. 솔직히."',
+        apply(s) { s.flags.sucAttitudeDone = true; s.flags.sucAttitude = 'unsure'; s.flags.doyulTrust = true; addLog('승계에 대한 솔직한 고백. 도율 신뢰 형성.'); },
+        result: '도율이 잠깐 침묵했다. "저도 모르겠어요, 사실은." 그것이 새하를 웃게 만든 첫 번째 말이었다.',
+      },
+    ],
+  },
+  {
     id: 'elder_last',
     trigger: s => s.turn >= 36 && s.flags.storyStage >= 2 && !s.flags.elderLastDone,
     type: 'story',
     title: '오래된 자의 마지막 방문',
     body: `오래된 자가 새하를 불렀다.
 
-19구역이 아니었다. 아크 제로 깊숙이, 한 번도 가본 적 없는 통로 끝.
+44구역이 아니었다. 아크 제로 깊숙이, 한 번도 가본 적 없는 통로 끝.
 
 그가 벽을 짚었다. 숨겨진 문이 열렸다.
 
@@ -704,6 +816,78 @@ const STORY_EVENTS = [
           addLog('어머니에 대한 진실을 알게 됐다. 무언가가 달라졌다.');
         },
         result: '새하는 오래 그 자리에 서 있었다. 설계도를 다시 떠올렸다. 같은 선이지만, 다르게 보였다. 어머니의 눈으로.',
+      },
+    ],
+  },
+  {
+    id: 'zone6',
+    trigger: s => s.flags.motherTruth && !s.flags.zone6Done,
+    type: 'story',
+    title: '6구역 — 봉인 구역',
+    body: `오래된 자가 새하를 데려간 그곳.
+
+설계도에도 없고 공식 기록에도 없는 구역.
+
+새하의 어머니의 기록이 있었다. 설계팀 보고서. 수기로 적힌 메모. 그리고 새하에게 보내는 편지.
+
+"네가 이것을 읽는다면, 네 안의 것들이 이미 작동하고 있을 것이다. 두려워하지 마라. 그것은 내가 선물한 것이다."
+
+새하는 한참 동안 그 편지 앞에 서 있었다.`,
+    choices: [
+      {
+        text: '기록을 모두 읽는다',
+        apply(s) {
+          s.flags.zone6Done = true;
+          s.res.morale += 10;
+          s.res.hanto  += 5;
+          s.flags.storyStage = Math.max(s.flags.storyStage, 4);
+          addLog('6구역 봉인 해제. 어머니의 기록을 읽다. 무언가가 달라졌다.');
+        },
+        result: '새하는 오래 그 자리에 서 있었다. 설계도를 다시 떠올렸다. 같은 선이지만, 다르게 보였다. 어머니의 눈으로.',
+      },
+    ],
+  },
+  {
+    id: 'final_succession',
+    trigger: s => s.turn >= 60 && s.flags.zone6Done && !s.flags.finalSucDone,
+    type: 'story',
+    title: '도착을 보고 싶다',
+    body: `케플러 그린 관측 데이터가 들어왔다.
+
+새하는 47구역 관측실에서 그 숫자들을 읽었다. 대기 성분. 수분 함량. 기온 범위.
+
+살 수 있다.
+
+아크 제로를 탄 사람들이 가장 듣고 싶었던 숫자들.
+
+새하는 창밖의 어둠을 바라봤다. 이 어둠 어딘가에 빛이 있다.
+
+도착하는 걸 보고 싶었다.
+
+하지만 자원은 여전히 빠듯하다. 승계를 받으면 그 자원이 다른 대기자에게 간다.`,
+    choices: [
+      {
+        text: '"도착하는 걸 보고 싶다." — 승계를 결심한다',
+        apply(s) {
+          s.flags.finalSucDone = true;
+          s.flags.saehaSuccession = 'will';
+          s.res.hanto  += 10;
+          s.res.morale += 8;
+          addLog('새하, 승계를 결심하다. 도착을 보기 위해.');
+        },
+        result: '"도착하는 걸 보고 싶다." 새하는 처음으로 자신을 위한 결정을 했다.',
+      },
+      {
+        text: '"대기자가 먼저다." — 승계를 미룬다',
+        apply(s) {
+          s.flags.finalSucDone = true;
+          s.flags.saehaSuccession = 'refuse';
+          s.sucQueue = Math.max(0, s.sucQueue - 3);
+          s.res.pop  += 3;
+          s.res.morale += 5;
+          addLog('새하, 승계 거부. 대기자에게 자원 돌림.');
+        },
+        result: '"대기자가 먼저예요." 도율이 아무 말 하지 않았다. 그 침묵이 무엇을 뜻하는지 새하는 알았다.',
       },
     ],
   },
@@ -761,19 +945,19 @@ const RANDOM_EVENTS = [
     type: 'threat', title: '기득권의 압박',
     body: `기득권 측에서 통보가 왔다. 에너지 공급 계약 재검토. 기존 조약보다 불리한 조건을 제시하고 있다.`,
     choices: [
-      { text: '조건을 받아들인다',                 apply: s => { s.flags.energyPenalty = (s.flags.energyPenalty||0) + 12; addLog('기득권 에너지 계약 수정. 불리하나 안정 유지.'); }, result: '불리했다. 그러나 지금은 버티는 것이 중요했다.' },
-      { text: '거부하고 독립 전력 확보에 집중한다', apply: s => { s.res.energy -= 20; s.flags.energyIndep = true; addLog('기득권 계약 거부. 독립 전력 추진.'); }, result: '일시적으로 에너지가 부족해졌다. 그러나 독립의 첫 걸음이었다.' },
-      { text: '오래된 자에게 조언을 구한다',       apply: s => { s.res.morale += 5; s.res.energy -= 5; addLog('오래된 자 조언 수용.'); }, result: '"그들이 원하는 건 자원이 아니에요. 당신이 먼저 부탁하게 만드는 것이에요."' },
+      { text: '조건을 받아들인다',                 apply: s => { s.flags.energyPenalty = (s.flags.energyPenalty||0) + 12; s.flags.eliteRel += 5; addLog('기득권 에너지 계약 수정. 불리하나 관계 유지.'); }, result: '불리했다. 그러나 지금은 버티는 것이 중요했다.' },
+      { text: '거부하고 독립 전력 확보에 집중한다', apply: s => { s.res.energy -= 20; s.flags.energyIndep = true; s.flags.eliteRel -= 8; addLog('기득권 계약 거부. 독립 전력 추진. 기득권 관계 악화.'); }, result: '일시적으로 에너지가 부족해졌다. 그러나 독립의 첫 걸음이었다.' },
+      { text: '오래된 자에게 조언을 구한다',       apply: s => { s.res.morale += 5; s.res.energy -= 5; s.flags.eliteRel += 2; addLog('오래된 자 조언 수용.'); }, result: '"그들이 원하는 건 자원이 아니에요. 당신이 먼저 부탁하게 만드는 것이에요."' },
     ],
   },
   {
     id: 'hanto_rally', weight: 6,
-    condition: s => s.res.morale < 42,
+    condition: s => s.res.hanto < 42,
     type: 'opportunity', title: '항도 집회',
-    body: `문화 구역 앞에 사람들이 모였다. 항도 집회가 자발적으로 열렸다. 어두운 시기, 사람들은 모이고 싶어한다.`,
+    body: `44구역 문화 구역 앞에 사람들이 모였다. 항도 집회가 자발적으로 열렸다. 어두운 시기, 사람들은 모이고 싶어한다.`,
     choices: [
-      { text: '집회에 새하도 참석한다',   apply: s => { s.res.morale += 10; addLog('항도 집회 참석. 주민들과 함께함.'); }, result: '새하는 연설을 하지 않았다. 그냥 앉아있었다. 그것으로 충분했다.' },
-      { text: '집회는 허용하되 불참한다', apply: s => { s.res.morale += 4;  addLog('항도 집회 허용.'); }, result: '사람들이 모였다. 새하가 없어도 모였다.' },
+      { text: '집회에 새하도 참석한다',   apply: s => { s.res.hanto += 10; s.res.morale += 3; addLog('항도 집회 참석. 주민들과 함께함.'); }, result: '새하는 연설을 하지 않았다. 그냥 앉아있었다. 그것으로 충분했다.' },
+      { text: '집회는 허용하되 불참한다', apply: s => { s.res.hanto += 4;  addLog('항도 집회 허용.'); }, result: '사람들이 모였다. 새하가 없어도 모였다.' },
     ],
   },
   {
@@ -821,6 +1005,7 @@ function renderHUD() {
   el('val-food').textContent   = Math.max(0, S.res.food);
   el('val-energy').textContent = Math.max(0, Math.round(S.res.energy));
   el('val-morale').textContent = Math.round(S.res.morale);
+  el('val-hanto').textContent  = Math.round(S.res.hanto);
   el('val-suc').textContent    = `${S.sucQueue}명`;
 
   setDelta('delta-food',   d.food);
@@ -1004,10 +1189,13 @@ function renderStatus() {
   const owned = S.zones.filter(z => z.owner === 'player').length;
 
   const warns = [];
-  if (S.res.food   < C.FOOD_CRISIS)   warns.push('⚠ 식량 위기 임박');
-  if (S.res.energy < C.ENERGY_CRISIS) warns.push('⚠ 에너지 위기 임박');
-  if (S.sucQueue   > 50)              warns.push('⚠ 승계 대기자 과다');
-  if (S.res.morale < 30)              warns.push('⚠ 주민 사기 저하');
+  if (S.res.food      < C.FOOD_CRISIS)   warns.push('⚠ 식량 위기 임박');
+  if (S.res.energy    < C.ENERGY_CRISIS) warns.push('⚠ 에너지 위기 임박');
+  if (S.sucQueue      > 50)              warns.push('⚠ 승계 대기자 과다');
+  if (S.res.morale    < 30)              warns.push('⚠ 주민 사기 저하');
+  if (S.flags.eliteRel < 15)             warns.push('⚠ 기득권 관계 위험');
+
+  const eliteLabel = S.flags.eliteRel < 30 ? '적대적' : S.flags.eliteRel < 60 ? '중립' : '협력적';
 
   el('status-box').innerHTML = `
     <div class="sum-grid">
@@ -1026,6 +1214,10 @@ function renderStatus() {
       <div class="sum-item">
         <span class="sum-label">승계 대기</span>
         <span class="sum-val">${S.sucQueue}명</span>
+      </div>
+      <div class="sum-item ${S.flags.eliteRel < 30 ? 'neg' : ''}">
+        <span class="sum-label">기득권 관계</span>
+        <span class="sum-val">${eliteLabel}</span>
       </div>
     </div>
     ${warns.length ? `<div class="warn-list">${warns.map(w => `<div class="warn-item">${w}</div>`).join('')}</div>` : ''}`;
